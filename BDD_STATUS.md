@@ -54,7 +54,7 @@ Checked 153 scenario(s) across 3 test file(s).
 - [x] Datafeed resolveSymbol fails for unknown symbol
 - [x] Datafeed getBars returns historical data
 - [x] Datafeed getBars returns noData when no bars exist
-- [ ] UNCOVERED: Datafeed getBars respects countBack parameter
+- [x] Datafeed getBars respects countBack parameter
 - [x] Datafeed subscribeBars registers a real-time listener
 - [x] Datafeed unsubscribeBars removes a real-time listener
 - [x] Datafeed searchSymbols returns matching results
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 3 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**62/153 scenarios covered.**
+**63/153 scenarios covered.**
 
-91 scenario(s) need tests:
-- Datafeed getBars respects countBack parameter
+90 scenario(s) need tests:
 - Set the active symbol
 - Change resolution
 - Reset state
