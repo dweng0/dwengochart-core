@@ -553,7 +553,7 @@ describe('Scenario: Accept a 24x7 session format for crypto', () => {
 })
 
 describe('Scenario: Accept a multi-segment session format', () => {
-    it('accept_a_multi_segment_session_format', () => {
+    it('accept_a_multisegment_session_format', () => {
         const symbolInfo: SymbolInfo = {
             name: 'AAPL',
             exchange: 'NASDAQ',
