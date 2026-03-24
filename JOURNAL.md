@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-03-24 13:04 — Datafeed Contract and Symbol Info (22 scenarios)
+
+Implemented Symbol Info Model (10 scenarios) with validateSymbolInfo() covering session format validation including HHMM-HHMM, 24x7, and multi-segment sessions. Then implemented Datafeed Contract (12 scenarios) with IDatafeed interface and SimpleDatafeed class covering onReady, resolveSymbol, getBars, subscribeBars, unsubscribeBars, and searchSymbols. All tests passing. Next: Chart State Management feature (7 uncovered scenarios).
+
 ## 2026-03-24 13:14 — Session complete (62/153 covered)
 
 Completed 38 scenarios this session across 4 features:
