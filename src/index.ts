@@ -210,9 +210,14 @@ export class SimpleDatafeed implements IDatafeed {
         onHistory: (bars: Bar[], noData: boolean, nextTime?: number) => void,
         _onError: (reason: string) => void,
         _firstDataRequest?: boolean,
+        countBack?: number,
     ): void {
         const bars = this.bars.get(_symbolInfo.name) || []
-        const filtered = bars.filter((b) => b.time >= from && b.time <= to)
+        let filtered = bars.filter((b) => b.time >= from && b.time <= to)
+
+        if (countBack !== undefined && filtered.length > countBack) {
+            filtered = filtered.slice(filtered.length - countBack)
+        }
 
         if (filtered.length === 0) {
             onHistory([], true)

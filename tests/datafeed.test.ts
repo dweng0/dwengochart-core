@@ -291,6 +291,43 @@ describe('Scenario: Datafeed getBars calls onError on failure', () => {
     })
 })
 
+describe('Scenario: Datafeed getBars respects countBack parameter', () => {
+    it('datafeed_getbars_respects_countback_parameter', () => {
+        const datafeed = new SimpleDatafeed()
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        datafeed.addSymbol(symbolInfo)
+
+        const bars: Bar[] = Array.from({ length: 100 }, (_, i) => ({
+            time: (i + 1) * 1000,
+            open: 100,
+            high: 105,
+            low: 95,
+            close: 102,
+        }))
+        datafeed.addBars('AAPL', bars)
+
+        const onHistory = vi.fn()
+        const onError = vi.fn()
+        datafeed.getBars(symbolInfo, '1D', 1000, 100000, onHistory, onError, false, 10)
+
+        expect(onHistory).toHaveBeenCalledTimes(1)
+        expect(onError).not.toHaveBeenCalled()
+        const returnedBars = onHistory.mock.calls[0][0]
+        expect(returnedBars.length).toBeLessThanOrEqual(10)
+        expect(returnedBars.length).toBe(10)
+    })
+})
+
 describe('Scenario: Datafeed getBars includes firstDataRequest flag', () => {
     it('datafeed_getbars_includes_firstdatarequest_flag', () => {
         const datafeed = new SimpleDatafeed()
