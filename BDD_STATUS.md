@@ -1,37 +1,37 @@
 # BDD Status
 
-Checked 153 scenario(s) across 1 test file(s).
+Checked 153 scenario(s) across 2 test file(s).
 
 
 ## Feature: Bar Data Model
 
-- [ ] UNCOVERED: Create a valid bar
-- [ ] UNCOVERED: Create a bar without volume
-- [ ] UNCOVERED: Reject a bar where high is less than low
-- [ ] UNCOVERED: Reject a bar where high is less than open or close
-- [ ] UNCOVERED: Reject a bar where low is greater than open or close
-- [ ] UNCOVERED: Reject a bar with negative time
-- [ ] UNCOVERED: Reject a bar with NaN values
-- [ ] UNCOVERED: Reject a bar with negative volume
-- [ ] UNCOVERED: Reject a bar with Infinity values
-- [ ] UNCOVERED: Reject a bar with non-integer timestamp
-- [ ] UNCOVERED: Accept a bar with zero price
+- [x] Create a valid bar
+- [x] Create a bar without volume
+- [x] Reject a bar where high is less than low
+- [x] Reject a bar where high is less than open or close
+- [x] Reject a bar where low is greater than open or close
+- [x] Reject a bar with negative time
+- [x] Reject a bar with NaN values
+- [x] Reject a bar with negative volume
+- [x] Reject a bar with Infinity values
+- [x] Reject a bar with non-integer timestamp
+- [x] Accept a bar with zero price
 
 ## Feature: Bar Series Storage
 
-- [ ] UNCOVERED: Add bars in chronological order
-- [ ] UNCOVERED: Add bars in reverse order
-- [ ] UNCOVERED: Deduplicate bars with the same timestamp
-- [ ] UNCOVERED: Merge an update into an existing bar
-- [ ] UNCOVERED: Retrieve bars within a time range
-- [ ] UNCOVERED: Query a range with no matching bars
-- [ ] UNCOVERED: Add an empty array of bars
+- [x] Add bars in chronological order
+- [x] Add bars in reverse order
+- [x] Deduplicate bars with the same timestamp
+- [x] Merge an update into an existing bar
+- [x] Retrieve bars within a time range
+- [x] Query a range with no matching bars
+- [x] Add an empty array of bars
 - [ ] UNCOVERED: Handle a large dataset
-- [ ] UNCOVERED: Get the latest bar
-- [ ] UNCOVERED: Get the latest bar from an empty store
-- [ ] UNCOVERED: Add a second batch with partial overlap
-- [ ] UNCOVERED: Clear the store
-- [ ] UNCOVERED: Get the bar count
+- [x] Get the latest bar
+- [x] Get the latest bar from an empty store
+- [x] Add a second batch with partial overlap
+- [x] Clear the store
+- [x] Get the bar count
 - [ ] UNCOVERED: Enforce maximum capacity
 
 ## Feature: Symbol Info Model
@@ -85,7 +85,7 @@ Checked 153 scenario(s) across 1 test file(s).
 - [ ] UNCOVERED: Change series type to same value is a no-op
 - [ ] UNCOVERED: Reorder series
 - [ ] UNCOVERED: Set an invalid series type
-- [ ] UNCOVERED: Add a series with duplicate id
+- [x] Add a series with duplicate id
 - [ ] UNCOVERED: Remove a nonexistent series is a no-op
 - [ ] UNCOVERED: Emit series:data when bars are loaded for a series
 - [ ] UNCOVERED: Emit series:data when a real-time bar updates a series
@@ -202,33 +202,10 @@ Checked 153 scenario(s) across 1 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**0/153 scenarios covered.**
+**24/153 scenarios covered.**
 
-153 scenario(s) need tests:
-- Create a valid bar
-- Create a bar without volume
-- Reject a bar where high is less than low
-- Reject a bar where high is less than open or close
-- Reject a bar where low is greater than open or close
-- Reject a bar with negative time
-- Reject a bar with NaN values
-- Reject a bar with negative volume
-- Reject a bar with Infinity values
-- Reject a bar with non-integer timestamp
-- Accept a bar with zero price
-- Add bars in chronological order
-- Add bars in reverse order
-- Deduplicate bars with the same timestamp
-- Merge an update into an existing bar
-- Retrieve bars within a time range
-- Query a range with no matching bars
-- Add an empty array of bars
+129 scenario(s) need tests:
 - Handle a large dataset
-- Get the latest bar
-- Get the latest bar from an empty store
-- Add a second batch with partial overlap
-- Clear the store
-- Get the bar count
 - Enforce maximum capacity
 - Create a valid symbol info
 - Create a crypto symbol with fractional pricing
@@ -270,7 +247,6 @@ Checked 153 scenario(s) across 1 test file(s).
 - Change series type to same value is a no-op
 - Reorder series
 - Set an invalid series type
-- Add a series with duplicate id
 - Remove a nonexistent series is a no-op
 - Emit series:data when bars are loaded for a series
 - Emit series:data when a real-time bar updates a series

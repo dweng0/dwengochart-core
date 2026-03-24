@@ -1,4 +1,3 @@
-| 2026-03-24 | 11:49 | 0
-0/153 | no changes |
-| 2026-03-24 | 11:51 | 0
-0/153 | no changes |
+# Journal Index
+
+<!-- One line per session. Newest at the top. -->

@@ -4,9 +4,7 @@ This file provides guidance to Claude Code when working in this repository.
 
 ## What This Is
 
-`@dwengochart/core` — a framework-agnostic TypeScript library that manages financial chart state, data models, and datafeed contracts. Part of the [dwengochart](https://github.com/dweng0/dwengochart) ecosystem.
-
-It owns OHLCV bar storage, symbol resolution, viewport state, series configuration, and real-time subscription management — communicating all state changes via `@yatamazuki/typed-eventbus`. Zero DOM dependencies.
+poppins (Behaviour and AI Driven Development) — a framework where an AI agent builds and maintains a project driven entirely by BDD specifications in `BDD.md`.
 
 ## Key Files
 
@@ -21,20 +19,14 @@ It owns OHLCV bar storage, symbol resolution, viewport state, series configurati
 ## Running
 
 ```bash
-# Install dependencies
-npm install
+# Install agent dependency
+pip install anthropic
 
-# Build
-npm run build
+# Run one evolution session
+ANTHROPIC_API_KEY=sk-... ./scripts/evolve.sh
 
-# Test
-npm test
-
-# Lint
-npm run lint
-
-# Format
-npm run format
+# Check BDD coverage manually
+python3 scripts/check_bdd_coverage.py BDD.md
 ```
 
 ## Interactive Evolution (Claude Code only)
@@ -56,15 +48,6 @@ When the user asks to "evolve", "run an evolution session", or "implement the ne
 10. (Claude Code only) If the implemented scenario came from a GitHub issue, comment on it with `gh issue comment <N> --body "Implemented in <commit hash>"` and close it with `gh issue close <N>`.
 11. Update `BDD_STATUS.md`: `python3 scripts/check_bdd_coverage.py BDD.md > BDD_STATUS.md`
 12. Ask the user if they want to continue to the next scenario
-
-## Architecture
-
-This package is part of a three-package ecosystem:
-- **`@dwengochart/core`** (this repo) — state, data models, datafeed contract
-- **`@dwengochart/renderer`** — canvas drawing, interactions, theming
-- **`@dwengochart/widget`** — TradingView-compatible API facade
-
-Packages communicate via `@yatamazuki/typed-eventbus`. Core never imports renderer or widget.
 
 ## Safety Rules
 
