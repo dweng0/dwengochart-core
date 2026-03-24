@@ -1,8 +1,8 @@
 # Journal
 
-## 2026-03-24 13:06 — Bar Series Storage capacity scenarios (26/153 covered)
+## 2026-03-24 13:09 — Symbol Info Model complete (49/153 covered)
 
-Implemented two uncovered Bar Series Storage scenarios: "Handle a large dataset" and "Enforce maximum capacity". Added maxCapacity option to SimpleBarStore constructor and eviction logic for oldest bars when capacity is exceeded. Both tests pass with performance under 50ms for 1000-bar window retrieval. Coverage is now 26/153. Next: Symbol Info Model scenarios (10 uncovered).
+Implemented all 10 Symbol Info Model scenarios: valid symbol info, crypto with fractional pricing, missing name rejection, invalid pricescale rejection, invalid session rejection, 24x7 session acceptance, multi-segment session acceptance, supported resolutions, currency code, and data capability flags. Added SymbolInfo interface and validateSymbolInfo() function with session format validation. All tests pass. Coverage now 49/153. Next: Datafeed Contract scenarios (13 uncovered).
 
 Implemented Bar Data Model (11 scenarios) and Bar Series Storage (13 scenarios) features for dwengochart/core. Added validateBar() function and SimpleBarStore class to src/index.ts. Covered all bar validation scenarios, basic store operations (add, retrieve range, get latest, clear, count), and edge cases like deduplication and empty arrays. Tests are passing and BDD_STATUS.md now shows 24/153 scenarios covered. Left uncovered: "Handle a large dataset" and "Enforce maximum capacity" scenarios from Bar Series Storage. Next: Symbol Info Model scenarios (10 uncovered in Feature: Symbol Info Model).
 
