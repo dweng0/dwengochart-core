@@ -26,13 +26,13 @@ Checked 153 scenario(s) across 2 test file(s).
 - [x] Retrieve bars within a time range
 - [x] Query a range with no matching bars
 - [x] Add an empty array of bars
-- [ ] UNCOVERED: Handle a large dataset
+- [x] Handle a large dataset
 - [x] Get the latest bar
 - [x] Get the latest bar from an empty store
 - [x] Add a second batch with partial overlap
 - [x] Clear the store
 - [x] Get the bar count
-- [ ] UNCOVERED: Enforce maximum capacity
+- [x] Enforce maximum capacity
 
 ## Feature: Symbol Info Model
 
@@ -202,11 +202,9 @@ Checked 153 scenario(s) across 2 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**24/153 scenarios covered.**
+**26/153 scenarios covered.**
 
-129 scenario(s) need tests:
-- Handle a large dataset
-- Enforce maximum capacity
+127 scenario(s) need tests:
 - Create a valid symbol info
 - Create a crypto symbol with fractional pricing
 - Reject symbol info with missing required name

@@ -335,6 +335,92 @@ describe('Scenario: Clear the store', () => {
     })
 })
 
+describe('Scenario: Handle a large dataset', () => {
+    it('handle_a_large_dataset', () => {
+        const store: BarSeriesStore = new SimpleBarStore()
+        const barCount = 100000
+        const bars: Bar[] = []
+        const baseTime = 1000000000000
+
+        // Generate 100000 bars with sequential timestamps
+        for (let i = 0; i < barCount; i++) {
+            bars.push({
+                time: baseTime + i * 60000, // 1-minute bars
+                open: 100 + i,
+                high: 105 + i,
+                low: 95 + i,
+                close: 102 + i,
+            })
+        }
+
+        const startTime = performance.now()
+        store.addBars(bars)
+        const addTime = performance.now() - startTime
+
+        expect(store.getBarCount()).toBe(barCount)
+
+        // Test retrieval of a 1000-bar window
+        const retrievalStart = performance.now()
+        const retrieved = store.getBars(
+            baseTime + 50000 * 60000,
+            baseTime + 51000 * 60000,
+        )
+        const retrievalTime = performance.now() - retrievalStart
+
+        expect(retrieved.length).toBe(1001) // inclusive range
+        expect(retrievalTime).toBeLessThan(50)
+    })
+})
+
+describe('Scenario: Enforce maximum capacity', () => {
+    it('enforce_maximum_capacity', () => {
+        const maxCapacity = 10000
+        const store: BarSeriesStore = new SimpleBarStore({ maxCapacity })
+        const baseTime = 1000000000000
+
+        // Add 10000 bars to fill the store
+        const initialBars: Bar[] = []
+        for (let i = 0; i < maxCapacity; i++) {
+            initialBars.push({
+                time: baseTime + i * 60000,
+                open: 100 + i,
+                high: 105 + i,
+                low: 95 + i,
+                close: 102 + i,
+            })
+        }
+        store.addBars(initialBars)
+        expect(store.getBarCount()).toBe(maxCapacity)
+
+        // Add 100 new bars with later timestamps
+        const newBars: Bar[] = []
+        for (let i = 0; i < 100; i++) {
+            newBars.push({
+                time: baseTime + (maxCapacity + i) * 60000,
+                open: 200 + i,
+                high: 205 + i,
+                low: 195 + i,
+                close: 202 + i,
+            })
+        }
+        store.addBars(newBars)
+
+        // Store should still contain exactly maxCapacity bars
+        expect(store.getBarCount()).toBe(maxCapacity)
+
+        // The 100 oldest bars should have been evicted
+        // First bar should now be at index 100 (time baseTime + 100 * 60000)
+        const allBars = store.getBars(
+            baseTime,
+            baseTime + (maxCapacity + 99) * 60000,
+        )
+        expect(allBars[0].time).toBe(baseTime + 100 * 60000)
+        expect(allBars[allBars.length - 1].time).toBe(
+            baseTime + (maxCapacity + 99) * 60000,
+        )
+    })
+})
+
 describe('Scenario: Get the bar count', () => {
     it('get_the_bar_count', () => {
         const store: BarSeriesStore = new SimpleBarStore()

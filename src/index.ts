@@ -89,11 +89,23 @@ export interface BarSeriesStore {
 }
 
 /**
+ * Options for SimpleBarStore
+ */
+export interface SimpleBarStoreOptions {
+    maxCapacity?: number
+}
+
+/**
  * A simple in-memory bar series store
  * Bars are stored in a Map keyed by time for O(1) lookup
  */
 export class SimpleBarStore implements BarSeriesStore {
     private bars: Map<number, Bar> = new Map()
+    private maxCapacity?: number
+
+    constructor(options?: SimpleBarStoreOptions) {
+        this.maxCapacity = options?.maxCapacity
+    }
 
     addBars(bars: Bar[]): void {
         if (bars.length === 0) {
@@ -108,6 +120,25 @@ export class SimpleBarStore implements BarSeriesStore {
         this.bars = new Map(
             [...this.bars.entries()].sort((a, b) => a[0] - b[0]),
         )
+
+        // Enforce maximum capacity by evicting oldest bars
+        if (
+            this.maxCapacity !== undefined &&
+            this.bars.size > this.maxCapacity
+        ) {
+            const excess = this.bars.size - this.maxCapacity
+            const keysToDelete: number[] = []
+            for (const key of this.bars.keys()) {
+                if (keysToDelete.length < excess) {
+                    keysToDelete.push(key)
+                } else {
+                    break
+                }
+            }
+            for (const key of keysToDelete) {
+                this.bars.delete(key)
+            }
+        }
     }
 
     getBars(startTime: number, endTime: number): Bar[] {
