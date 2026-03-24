@@ -42,7 +42,7 @@ Checked 153 scenario(s) across 2 test file(s).
 - [x] Reject symbol info with invalid pricescale
 - [x] Reject symbol info with invalid session format
 - [x] Accept a 24x7 session format for crypto
-- [ ] UNCOVERED: Accept a multi-segment session format
+- [x] Accept a multi-segment session format
 - [x] Symbol info includes supported resolutions
 - [x] Symbol info includes currency code
 - [x] Symbol info includes data capability flags
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 2 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**49/153 scenarios covered.**
+**50/153 scenarios covered.**
 
-104 scenario(s) need tests:
-- Accept a multi-segment session format
+103 scenario(s) need tests:
 - Datafeed onReady returns configuration
 - Datafeed resolveSymbol succeeds
 - Datafeed resolveSymbol fails for unknown symbol
