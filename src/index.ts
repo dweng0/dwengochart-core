@@ -167,3 +167,101 @@ export class SimpleBarStore implements BarSeriesStore {
         this.bars.clear()
     }
 }
+
+/**
+ * Symbol Info matching TradingView's LibrarySymbolInfo
+ */
+export interface SymbolInfo {
+    name: string
+    description?: string
+    exchange: string
+    type: string
+    timezone: string
+    session: string
+    minmov: number
+    pricescale: number
+    has_intraday: boolean
+    has_no_volume: boolean
+    supported_resolutions?: string[]
+    currency_code?: string
+    has_daily?: boolean
+    has_weekly_and_monthly?: boolean
+}
+
+/**
+ * Validation result for SymbolInfo
+ */
+export interface SymbolInfoValidationResult {
+    valid: boolean
+    error?: string
+}
+
+/**
+ * Validates session format. Valid formats:
+ * - "HHMM-HHMM" (e.g., "0930-1600")
+ * - "24x7" (for crypto)
+ * - Multi-segment: "HHMM-HHMM,HHMM-HHMM,..." (e.g., "0400-0930,0930-1600,1600-2000")
+ */
+function isValidSession(session: string): boolean {
+    if (session === '24x7') {
+        return true
+    }
+
+    // Check for multi-segment format
+    const segments = session.split(',')
+    const timeSegmentRegex = /^\d{4}-\d{4}$/
+
+    for (const segment of segments) {
+        if (!timeSegmentRegex.test(segment)) {
+            return false
+        }
+
+        // Validate time ranges within segment
+        const [start, end] = segment.split('-').map(Number)
+        const startHour = Math.floor(start / 100)
+        const startMin = start % 100
+        const endHour = Math.floor(end / 100)
+        const endMin = end % 100
+
+        // Check valid hour and minute ranges
+        if (startHour < 0 || startHour > 23 || startMin < 0 || startMin > 59) {
+            return false
+        }
+        if (endHour < 0 || endHour > 23 || endMin < 0 || endMin > 59) {
+            return false
+        }
+    }
+
+    return true
+}
+
+/**
+ * Validates SymbolInfo according to TradingView spec:
+ * - name is required
+ * - pricescale must be a positive integer
+ * - session must be in valid format (HHMM-HHMM, 24x7, or multi-segment)
+ */
+export function validateSymbolInfo(
+    symbolInfo: Partial<SymbolInfo>,
+): SymbolInfoValidationResult {
+    // Check name is required
+    if (!symbolInfo.name || symbolInfo.name.trim() === '') {
+        return { valid: false, error: 'name is required' }
+    }
+
+    // Check pricescale is a positive integer
+    if (
+        symbolInfo.pricescale === undefined ||
+        !Number.isInteger(symbolInfo.pricescale) ||
+        symbolInfo.pricescale <= 0
+    ) {
+        return { valid: false, error: 'pricescale must be a positive integer' }
+    }
+
+    // Check session format
+    if (!symbolInfo.session || !isValidSession(symbolInfo.session)) {
+        return { valid: false, error: 'invalid session format' }
+    }
+
+    return { valid: true }
+}

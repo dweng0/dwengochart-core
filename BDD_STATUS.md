@@ -36,16 +36,16 @@ Checked 153 scenario(s) across 2 test file(s).
 
 ## Feature: Symbol Info Model
 
-- [ ] UNCOVERED: Create a valid symbol info
-- [ ] UNCOVERED: Create a crypto symbol with fractional pricing
-- [ ] UNCOVERED: Reject symbol info with missing required name
-- [ ] UNCOVERED: Reject symbol info with invalid pricescale
-- [ ] UNCOVERED: Reject symbol info with invalid session format
-- [ ] UNCOVERED: Accept a 24x7 session format for crypto
+- [x] Create a valid symbol info
+- [x] Create a crypto symbol with fractional pricing
+- [x] Reject symbol info with missing required name
+- [x] Reject symbol info with invalid pricescale
+- [x] Reject symbol info with invalid session format
+- [x] Accept a 24x7 session format for crypto
 - [ ] UNCOVERED: Accept a multi-segment session format
-- [ ] UNCOVERED: Symbol info includes supported resolutions
-- [ ] UNCOVERED: Symbol info includes currency code
-- [ ] UNCOVERED: Symbol info includes data capability flags
+- [x] Symbol info includes supported resolutions
+- [x] Symbol info includes currency code
+- [x] Symbol info includes data capability flags
 
 ## Feature: Datafeed Contract
 
@@ -81,16 +81,16 @@ Checked 153 scenario(s) across 2 test file(s).
 - [ ] UNCOVERED: Update series options
 - [ ] UNCOVERED: Show a hidden series
 - [ ] UNCOVERED: Hide a visible series
-- [ ] UNCOVERED: Change series type
-- [ ] UNCOVERED: Change series type to same value is a no-op
+- [x] Change series type
+- [x] Change series type to same value is a no-op
 - [ ] UNCOVERED: Reorder series
-- [ ] UNCOVERED: Set an invalid series type
+- [x] Set an invalid series type
 - [x] Add a series with duplicate id
 - [ ] UNCOVERED: Remove a nonexistent series is a no-op
 - [ ] UNCOVERED: Emit series:data when bars are loaded for a series
 - [ ] UNCOVERED: Emit series:data when a real-time bar updates a series
 - [ ] UNCOVERED: Each series has its own bar store
-- [ ] UNCOVERED: Clear series data on symbol change
+- [x] Clear series data on symbol change
 
 ## Feature: Viewport State
 
@@ -176,7 +176,7 @@ Checked 153 scenario(s) across 2 test file(s).
 - [ ] UNCOVERED: Parse weekly resolution
 - [ ] UNCOVERED: Parse monthly resolution
 - [ ] UNCOVERED: Reject invalid resolution string
-- [ ] UNCOVERED: Reject negative resolution
+- [x] Reject negative resolution
 - [ ] UNCOVERED: Parse multi-unit resolutions
 - [ ] UNCOVERED: Parse seconds resolutions
 - [ ] UNCOVERED: Resolution equivalence
@@ -185,36 +185,27 @@ Checked 153 scenario(s) across 2 test file(s).
 
 ## Feature: Price Formatting
 
-- [ ] UNCOVERED: Format a price with pricescale 100
-- [ ] UNCOVERED: Format a price with pricescale 1
-- [ ] UNCOVERED: Format a price with high pricescale for crypto
-- [ ] UNCOVERED: Format a price with currency symbol
+- [x] Format a price with pricescale 100
+- [x] Format a price with pricescale 1
+- [x] Format a price with high pricescale for crypto
+- [x] Format a price with currency symbol
 - [ ] UNCOVERED: Format a price with euro currency
-- [ ] UNCOVERED: Format zero price
+- [x] Format zero price
 - [ ] UNCOVERED: Format a very large price
 
 ## Feature: Time Formatting
 
-- [ ] UNCOVERED: Format a timestamp at daily resolution
-- [ ] UNCOVERED: Format a timestamp at intraday resolution
-- [ ] UNCOVERED: Format a timestamp at weekly resolution
-- [ ] UNCOVERED: Format a timestamp at monthly resolution
+- [x] Format a timestamp at daily resolution
+- [x] Format a timestamp at intraday resolution
+- [x] Format a timestamp at weekly resolution
+- [x] Format a timestamp at monthly resolution
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**26/153 scenarios covered.**
+**49/153 scenarios covered.**
 
-127 scenario(s) need tests:
-- Create a valid symbol info
-- Create a crypto symbol with fractional pricing
-- Reject symbol info with missing required name
-- Reject symbol info with invalid pricescale
-- Reject symbol info with invalid session format
-- Accept a 24x7 session format for crypto
+104 scenario(s) need tests:
 - Accept a multi-segment session format
-- Symbol info includes supported resolutions
-- Symbol info includes currency code
-- Symbol info includes data capability flags
 - Datafeed onReady returns configuration
 - Datafeed resolveSymbol succeeds
 - Datafeed resolveSymbol fails for unknown symbol
@@ -241,15 +232,11 @@ Checked 153 scenario(s) across 2 test file(s).
 - Update series options
 - Show a hidden series
 - Hide a visible series
-- Change series type
-- Change series type to same value is a no-op
 - Reorder series
-- Set an invalid series type
 - Remove a nonexistent series is a no-op
 - Emit series:data when bars are loaded for a series
 - Emit series:data when a real-time bar updates a series
 - Each series has its own bar store
-- Clear series data on symbol change
 - Set the visible range
 - Pan the viewport
 - Zoom the viewport
@@ -314,21 +301,11 @@ Checked 153 scenario(s) across 2 test file(s).
 - Parse weekly resolution
 - Parse monthly resolution
 - Reject invalid resolution string
-- Reject negative resolution
 - Parse multi-unit resolutions
 - Parse seconds resolutions
 - Resolution equivalence
 - Convert resolution to milliseconds
 - Convert intraday resolution to milliseconds
-- Format a price with pricescale 100
-- Format a price with pricescale 1
-- Format a price with high pricescale for crypto
-- Format a price with currency symbol
 - Format a price with euro currency
-- Format zero price
 - Format a very large price
-- Format a timestamp at daily resolution
-- Format a timestamp at intraday resolution
-- Format a timestamp at weekly resolution
-- Format a timestamp at monthly resolution
 - Format respects timezone

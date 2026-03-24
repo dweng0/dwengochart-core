@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { validateBar, Bar, SimpleBarStore, BarSeriesStore } from '../src/index'
+import {
+    validateBar,
+    Bar,
+    SimpleBarStore,
+    BarSeriesStore,
+    validateSymbolInfo,
+    SymbolInfo,
+} from '../src/index'
 
 describe('Scenario: Create a valid bar', () => {
     it('create_a_valid_bar', () => {
@@ -431,5 +438,203 @@ describe('Scenario: Get the bar count', () => {
         ])
         const count = store.getBarCount()
         expect(count).toBe(3)
+    })
+})
+
+describe('Scenario: Create a valid symbol info', () => {
+    it('create_a_valid_symbol_info', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            description: 'Apple Inc',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+    })
+})
+
+describe('Scenario: Create a crypto symbol with fractional pricing', () => {
+    it('create_a_crypto_symbol_with_fractional_pricing', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'BTCUSD',
+            exchange: 'CRYPTO',
+            type: 'crypto',
+            timezone: 'UTC',
+            session: '24x7',
+            minmov: 1,
+            pricescale: 100000000,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+    })
+})
+
+describe('Scenario: Reject symbol info with missing required name', () => {
+    it('reject_symbol_info_with_missing_required_name', () => {
+        const symbolInfo: any = {
+            exchange: 'TEST',
+            type: 'stock',
+            timezone: 'UTC',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(false)
+        expect(result.error).toBe('name is required')
+    })
+})
+
+describe('Scenario: Reject symbol info with invalid pricescale', () => {
+    it('reject_symbol_info_with_invalid_pricescale', () => {
+        const symbolInfo: any = {
+            name: 'TEST',
+            exchange: 'TEST',
+            type: 'stock',
+            timezone: 'UTC',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 0,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(false)
+        expect(result.error).toBe('pricescale must be a positive integer')
+    })
+})
+
+describe('Scenario: Reject symbol info with invalid session format', () => {
+    it('reject_symbol_info_with_invalid_session_format', () => {
+        const symbolInfo: any = {
+            name: 'TEST',
+            exchange: 'TEST',
+            type: 'stock',
+            timezone: 'UTC',
+            session: 'invalid',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(false)
+        expect(result.error).toBe('invalid session format')
+    })
+})
+
+describe('Scenario: Accept a 24x7 session format for crypto', () => {
+    it('accept_a_24x7_session_format_for_crypto', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'BTCUSD',
+            exchange: 'CRYPTO',
+            type: 'crypto',
+            timezone: 'UTC',
+            session: '24x7',
+            minmov: 1,
+            pricescale: 100000000,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+    })
+})
+
+describe('Scenario: Accept a multi-segment session format', () => {
+    it('accept_a_multi_segment_session_format', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0400-0930,0930-1600,1600-2000',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+    })
+})
+
+describe('Scenario: Symbol info includes supported resolutions', () => {
+    it('symbol_info_includes_supported_resolutions', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+            supported_resolutions: ['1', '5', '15', '60', '1D', '1W'],
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+        expect(symbolInfo.supported_resolutions).toEqual([
+            '1',
+            '5',
+            '15',
+            '60',
+            '1D',
+            '1W',
+        ])
+    })
+})
+
+describe('Scenario: Symbol info includes currency code', () => {
+    it('symbol_info_includes_currency_code', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+            currency_code: 'USD',
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+        expect(symbolInfo.currency_code).toBe('USD')
+    })
+})
+
+describe('Scenario: Symbol info includes data capability flags', () => {
+    it('symbol_info_includes_data_capability_flags', () => {
+        const symbolInfo: SymbolInfo = {
+            name: 'AAPL',
+            exchange: 'NASDAQ',
+            type: 'stock',
+            timezone: 'America/New_York',
+            session: '0930-1600',
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+            has_daily: true,
+            has_weekly_and_monthly: true,
+        }
+        const result: any = validateSymbolInfo(symbolInfo)
+        expect(result.valid).toBe(true)
+        expect(symbolInfo.has_daily).toBe(true)
+        expect(symbolInfo.has_weekly_and_monthly).toBe(true)
     })
 })
