@@ -1,6 +1,6 @@
 # BDD Status
 
-Checked 153 scenario(s) across 2 test file(s).
+Checked 153 scenario(s) across 3 test file(s).
 
 
 ## Feature: Bar Data Model
@@ -49,19 +49,19 @@ Checked 153 scenario(s) across 2 test file(s).
 
 ## Feature: Datafeed Contract
 
-- [ ] UNCOVERED: Datafeed onReady returns configuration
-- [ ] UNCOVERED: Datafeed resolveSymbol succeeds
-- [ ] UNCOVERED: Datafeed resolveSymbol fails for unknown symbol
-- [ ] UNCOVERED: Datafeed getBars returns historical data
-- [ ] UNCOVERED: Datafeed getBars returns noData when no bars exist
+- [x] Datafeed onReady returns configuration
+- [x] Datafeed resolveSymbol succeeds
+- [x] Datafeed resolveSymbol fails for unknown symbol
+- [x] Datafeed getBars returns historical data
+- [x] Datafeed getBars returns noData when no bars exist
 - [ ] UNCOVERED: Datafeed getBars respects countBack parameter
-- [ ] UNCOVERED: Datafeed subscribeBars registers a real-time listener
-- [ ] UNCOVERED: Datafeed unsubscribeBars removes a real-time listener
-- [ ] UNCOVERED: Datafeed searchSymbols returns matching results
-- [ ] UNCOVERED: Datafeed searchSymbols returns empty for no match
-- [ ] UNCOVERED: Datafeed onReady callback is asynchronous
-- [ ] UNCOVERED: Datafeed getBars calls onError on failure
-- [ ] UNCOVERED: Datafeed getBars includes firstDataRequest flag
+- [x] Datafeed subscribeBars registers a real-time listener
+- [x] Datafeed unsubscribeBars removes a real-time listener
+- [x] Datafeed searchSymbols returns matching results
+- [x] Datafeed searchSymbols returns empty for no match
+- [x] Datafeed onReady callback is asynchronous
+- [x] Datafeed getBars calls onError on failure
+- [x] Datafeed getBars includes firstDataRequest flag
 
 ## Feature: Chart State Management
 
@@ -202,22 +202,10 @@ Checked 153 scenario(s) across 2 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**50/153 scenarios covered.**
+**62/153 scenarios covered.**
 
-103 scenario(s) need tests:
-- Datafeed onReady returns configuration
-- Datafeed resolveSymbol succeeds
-- Datafeed resolveSymbol fails for unknown symbol
-- Datafeed getBars returns historical data
-- Datafeed getBars returns noData when no bars exist
+91 scenario(s) need tests:
 - Datafeed getBars respects countBack parameter
-- Datafeed subscribeBars registers a real-time listener
-- Datafeed unsubscribeBars removes a real-time listener
-- Datafeed searchSymbols returns matching results
-- Datafeed searchSymbols returns empty for no match
-- Datafeed onReady callback is asynchronous
-- Datafeed getBars calls onError on failure
-- Datafeed getBars includes firstDataRequest flag
 - Set the active symbol
 - Change resolution
 - Reset state

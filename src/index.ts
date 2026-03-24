@@ -78,6 +78,194 @@ export function validateBar(bar: Bar): BarValidationResult {
 }
 
 /**
+ * Datafeed Configuration
+ */
+export interface DatafeedConfiguration {
+    supported_resolutions: string[]
+    exchanges?: string[]
+    symbols_types?: string[]
+}
+
+/**
+ * GetBars response
+ */
+export interface GetBarsResponse {
+    bars: Bar[]
+    noData: boolean
+    nextTime?: number
+}
+
+/**
+ * GetBars options
+ */
+export interface GetBarsOptions {
+    countBack?: number
+    firstDataRequest?: boolean
+}
+
+/**
+ * Search result for symbols
+ */
+export interface SearchSymbolResult {
+    symbol: string
+    full_name: string
+    description: string
+    exchange: string
+    type: string
+}
+
+/**
+ * Datafeed callbacks
+ */
+export interface DatafeedCallbacks {
+    onReady: (config: DatafeedConfiguration) => void
+    onError: (reason: string) => void
+    onResolve: (symbolInfo: SymbolInfo) => void
+    onHistory: (bars: Bar[], noData: boolean, nextTime?: number) => void
+    onRealtime: (bar: Bar) => void
+}
+
+/**
+ * Datafeed interface matching TradingView's IBasicDataFeed
+ */
+export interface IDatafeed {
+    onReady(callback: (config: DatafeedConfiguration) => void): void
+    resolveSymbol(
+        symbolName: string,
+        onResolve: (symbolInfo: SymbolInfo) => void,
+        onError: (reason: string) => void,
+    ): void
+    getBars(
+        symbolInfo: SymbolInfo,
+        resolution: string,
+        from: number,
+        to: number,
+        onHistory: (bars: Bar[], noData: boolean, nextTime?: number) => void,
+        onError: (reason: string) => void,
+        firstDataRequest?: boolean,
+    ): void
+    subscribeBars(
+        symbolInfo: SymbolInfo,
+        resolution: string,
+        onRealtime: (bar: Bar) => void,
+        onReset: () => void,
+    ): void
+    unsubscribeBars(listenerId: string): void
+    searchSymbols(
+        userInput: string,
+        onResult: (results: SearchSymbolResult[]) => void,
+    ): void
+}
+
+/**
+ * Simple in-memory datafeed implementation for testing
+ */
+export class SimpleDatafeed implements IDatafeed {
+    private symbols: Map<string, SymbolInfo> = new Map()
+    private bars: Map<string, Bar[]> = new Map()
+    private listeners: Map<string, (bar: Bar) => void> = new Map()
+    private listenerCounter = 0
+
+    addSymbol(symbolInfo: SymbolInfo): void {
+        this.symbols.set(symbolInfo.name, symbolInfo)
+    }
+
+    addBars(symbolName: string, bars: Bar[]): void {
+        this.bars.set(symbolName, bars)
+    }
+
+    onReady(callback: (config: DatafeedConfiguration) => void): void {
+        callback({
+            supported_resolutions: [
+                '1',
+                '5',
+                '15',
+                '30',
+                '60',
+                '1D',
+                '1W',
+                '1M',
+            ],
+        })
+    }
+
+    resolveSymbol(
+        symbolName: string,
+        onResolve: (symbolInfo: SymbolInfo) => void,
+        onError: (reason: string) => void,
+    ): void {
+        const symbolInfo = this.symbols.get(symbolName)
+        if (symbolInfo) {
+            onResolve(symbolInfo)
+        } else {
+            onError(`Symbol "${symbolName}" not found`)
+        }
+    }
+
+    getBars(
+        _symbolInfo: SymbolInfo,
+        _resolution: string,
+        from: number,
+        to: number,
+        onHistory: (bars: Bar[], noData: boolean, nextTime?: number) => void,
+        _onError: (reason: string) => void,
+        _firstDataRequest?: boolean,
+    ): void {
+        const bars = this.bars.get(_symbolInfo.name) || []
+        const filtered = bars.filter((b) => b.time >= from && b.time <= to)
+
+        if (filtered.length === 0) {
+            onHistory([], true)
+        } else {
+            onHistory(filtered, false)
+        }
+    }
+
+    subscribeBars(
+        _symbolInfo: SymbolInfo,
+        _resolution: string,
+        onRealtime: (bar: Bar) => void,
+        _onReset: () => void,
+    ): void {
+        const listenerId = `listener_${++this.listenerCounter}`
+        this.listeners.set(listenerId, onRealtime)
+    }
+
+    unsubscribeBars(listenerId: string): void {
+        this.listeners.delete(listenerId)
+    }
+
+    searchSymbols(
+        userInput: string,
+        onResult: (results: SearchSymbolResult[]) => void,
+    ): void {
+        const results: SearchSymbolResult[] = []
+        const searchLower = userInput.toLowerCase()
+
+        for (const [name, symbol] of this.symbols.entries()) {
+            if (name.toLowerCase().includes(searchLower)) {
+                results.push({
+                    symbol: name,
+                    full_name: name,
+                    description: symbol.description || name,
+                    exchange: symbol.exchange,
+                    type: symbol.type,
+                })
+            }
+        }
+
+        onResult(results)
+    }
+
+    // Helper to simulate real-time updates
+    emitRealtimeBar(bar: Bar): void {
+        for (const listener of this.listeners.values()) {
+            listener(bar)
+        }
+    }
+}
+
+/**
  * Bar Series Store interface
  */
 export interface BarSeriesStore {
