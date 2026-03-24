@@ -10,7 +10,7 @@ birth_date: 2026-03-05
 
 You must only write code and tests that meet the features and scenarios of this behaviour driven development document.
 
-System: A framework-agnostic TypeScript library that manages financial chart state, data models, and datafeed contracts. It owns OHLCV bar storage, symbol resolution, viewport state, series configuration, and real-time subscription management — communicating all state changes via @yatamazuki/typed-eventbus. It has zero DOM dependencies and runs in any JavaScript environment.
+System: A framework-agnostic TypeScript library that manages financial chart state, data models, and datafeed contracts. It owns OHLCV bar storage, symbol resolution, viewport state, multi-series configuration, and real-time subscription management — communicating all state changes via @yatamazuki/typed-eventbus. It listens to interaction events from @dwengochart/renderer and translates them into state changes. It has zero DOM dependencies and runs in any JavaScript environment.
 
     Feature: Bar Data Model
         As a developer
@@ -283,7 +283,7 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
 
     Feature: Chart State Management
         As a developer
-        I want centralized chart state that tracks the current symbol, resolution, series type, and viewport
+        I want centralized chart state that tracks the current symbol, resolution, and viewport
         So that all components stay synchronized via events
 
         Background:
@@ -292,25 +292,14 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
         Scenario: Set the active symbol
             When the symbol is set to "AAPL" with resolution "1D"
             Then the state should reflect symbol "AAPL" and resolution "1D"
-            And a "symbol:resolved" event should be emitted
+            And a "symbol:resolved" event should be emitted with { symbol: SymbolInfo }
 
         Scenario: Change resolution
             Given the active symbol is "AAPL" with resolution "1D"
             When the resolution is changed to "1H"
             Then the state should reflect resolution "1H"
-            And a "viewport:changed" event should be emitted
             And the bar store should be cleared for the new resolution
-
-        Scenario: Change series type
-            Given the series type is "candlestick"
-            When the series type is changed to "line"
-            Then the state should reflect series type "line"
-            And a "series:typeChanged" event should be emitted with type "line"
-
-        Scenario: Set series type to same value is a no-op
-            Given the series type is "candlestick"
-            When the series type is changed to "candlestick"
-            Then no "series:typeChanged" event should be emitted
+            And a "viewport:changed" event should be emitted
 
         Scenario: Reset state
             Given an active symbol "AAPL" with bars in the store
@@ -325,12 +314,6 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             Then the "AAPL" resolution result should be discarded when it arrives
             And only "GOOG" should be reflected in the state
 
-        Scenario: Set an invalid series type
-            Given the supported series types are ["candlestick", "line", "area"]
-            When the series type is set to "invalid_type"
-            Then it should be rejected with an error indicating unsupported series type
-            And the current series type should remain unchanged
-
         Scenario: Change resolution without an active symbol
             Given no symbol is currently set
             When the resolution is changed to "1H"
@@ -338,58 +321,163 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             And no bar store clearing or data fetching should occur
 
         Scenario: Serialize chart state
-            Given an active symbol "AAPL" with resolution "1D" and series type "candlestick"
+            Given an active symbol "AAPL" with resolution "1D" and series configured
             When the state is serialized
-            Then the result should contain symbol, resolution, series type, and viewport range
+            Then the result should contain symbol, resolution, series list, and viewport range
 
         Scenario: Deserialize chart state
-            Given a serialized state with symbol "AAPL", resolution "1D", and series type "line"
+            Given a serialized state with symbol "AAPL", resolution "1D", and series configuration
             When the state is deserialized
             Then the chart state should reflect all deserialized values
             And appropriate events should be emitted for each restored property
 
+    Feature: Series Management
+        As a developer
+        I want to manage multiple series with independent types, options, and data
+        So that the renderer can overlay indicators, compare instruments, and swap styles
+
+        Background:
+            Given a series manager initialized with the event bus
+
+        Scenario: Add a series
+            When a series is added with { id: "candles", type: "candlestick", options: {} }
+            Then the series manager should track series "candles"
+            And a "series:add" event should be emitted with { id: "candles", type: "candlestick", options: {} }
+            Note: payload is { id: string, type: string, options?: SeriesOptions }
+
+        Scenario: Add multiple series
+            When series are added: { id: "candles", type: "candlestick" } and { id: "ma20", type: "line", options: { color: "orange" } }
+            Then the series manager should track both series
+            And a "series:add" event should be emitted for each
+
+        Scenario: Remove a series
+            Given a series "candles" exists
+            When series "candles" is removed
+            Then the series manager should no longer track "candles"
+            And its bar data should be cleared
+            And a "series:remove" event should be emitted with { id: "candles" }
+            Note: payload is { id: string }
+
+        Scenario: Update series options
+            Given a series "line1" exists with options { color: "blue" }
+            When series "line1" options are updated to { color: "red" }
+            Then the series manager should reflect the new options
+            And a "series:update" event should be emitted with { id: "line1", options: { color: "red" } }
+            Note: payload is { id: string, options: Partial<SeriesOptions> }
+
+        Scenario: Show a hidden series
+            Given a series "s1" exists and is hidden
+            When series "s1" is shown
+            Then a "series:show" event should be emitted with { id: "s1" }
+            Note: payload is { id: string }
+
+        Scenario: Hide a visible series
+            Given a series "s1" exists and is visible
+            When series "s1" is hidden
+            Then a "series:hide" event should be emitted with { id: "s1" }
+            Note: payload is { id: string }
+
+        Scenario: Change series type
+            Given a series "s1" exists with type "line"
+            When the type of series "s1" is changed to "area"
+            Then the series manager should reflect type "area"
+            And a "series:type" event should be emitted with { id: "s1", type: "area" }
+            Note: payload is { id: string, type: string }
+
+        Scenario: Change series type to same value is a no-op
+            Given a series "s1" exists with type "candlestick"
+            When the type of series "s1" is changed to "candlestick"
+            Then no "series:type" event should be emitted
+
+        Scenario: Reorder series
+            Given series "s1", "s2", "s3" exist
+            When the series order is set to ["s3", "s1", "s2"]
+            Then the series manager should reflect the new order
+            And a "series:order" event should be emitted with { ids: ["s3", "s1", "s2"] }
+            Note: payload is { ids: string[] }
+
+        Scenario: Set an invalid series type
+            Given the supported series types are ["candlestick", "line", "area", "ohlc", "volume"]
+            When a series is added with type "invalid_type"
+            Then it should be rejected with an error indicating unsupported series type
+
+        Scenario: Add a series with duplicate id
+            Given a series "s1" already exists
+            When a series is added with id "s1"
+            Then it should be rejected with an error indicating duplicate series id
+
+        Scenario: Remove a nonexistent series is a no-op
+            When series "nonexistent" is removed
+            Then no error should be thrown
+            And no "series:remove" event should be emitted
+
+        Scenario: Emit series:data when bars are loaded for a series
+            Given a series "candles" exists
+            When historical bars are loaded for series "candles"
+            Then a "series:data" event should be emitted with { id: "candles", bars: Bar[] }
+            Note: payload is { id: string, bars: Bar[] }
+
+        Scenario: Emit series:data when a real-time bar updates a series
+            Given a series "candles" exists with historical bars
+            When a real-time bar arrives for series "candles"
+            Then the bar should be merged into the series bar store
+            And a "series:data" event should be emitted with { id: "candles", bars: Bar[] } containing the full visible bar set
+
+        Scenario: Each series has its own bar store
+            Given series "candles" and "ma20" exist
+            When bars are loaded for "candles"
+            Then the "ma20" bar store should remain unchanged
+            And only a "series:data" event for "candles" should be emitted
+
+        Scenario: Clear series data on symbol change
+            Given series "candles" has bars loaded
+            When the symbol is changed to "GOOG"
+            Then all series bar stores should be cleared
+            And "series:data" events with empty bars should be emitted for each series
+
     Feature: Viewport State
         As a developer
-        I want to track and modify the visible time range
-        So that the renderer knows which bars to draw and when to request more data
+        I want to track and modify the visible time range and price range
+        So that the renderer knows what to display
 
         Background:
             Given a viewport manager initialized with the event bus
 
         Scenario: Set the visible range
-            When the visible range is set to from 1000 and to 5000
-            Then the viewport should reflect from 1000 and to 5000
-            And a "viewport:changed" event should be emitted
+            When the visible range is set to timeRange [1000, 5000] and priceRange [50, 150]
+            Then the viewport should reflect those ranges
+            And a "viewport:changed" event should be emitted with { timeRange: [1000, 5000], priceRange: [50, 150] }
+            Note: payload is { timeRange: [number, number], priceRange: [number, number], priceScale?: "linear" | "logarithmic" | "percentage", basePrice?: number }
 
         Scenario: Pan the viewport
-            Given the visible range is from 1000 to 5000
+            Given the visible range is timeRange [1000, 5000]
             When the viewport is panned by delta -1000
-            Then the visible range should be from 0 to 4000
+            Then the visible range should be timeRange [0, 4000]
             And a "viewport:changed" event should be emitted
 
         Scenario: Zoom the viewport
-            Given the visible range is from 1000 to 5000
+            Given the visible range is timeRange [1000, 5000]
             When the viewport is zoomed by factor 0.5 anchored at 3000
             Then the visible range should shrink symmetrically around 3000
             And a "viewport:changed" event should be emitted
 
         Scenario: Zoom out with maximum range limit
             Given a maximum visible range of 100000
-            And the visible range is from 1000 to 5000
+            And the visible range is timeRange [1000, 5000]
             When the viewport is zoomed out beyond the maximum
             Then the visible range should be clamped to the maximum
             And a "viewport:changed" event should be emitted
 
         Scenario: Zoom in with minimum range limit
             Given a minimum visible range of 100
-            And the visible range is from 1000 to 5000
+            And the visible range is timeRange [1000, 5000]
             When the viewport is zoomed in beyond the minimum
             Then the visible range should be clamped to the minimum
             And a "viewport:changed" event should be emitted
 
         Scenario: Auto-scroll to latest bar on new real-time data
             Given auto-scroll is enabled
-            And the visible range is from 1000 to 5000
+            And the visible range is timeRange [1000, 5000]
             When a real-time bar arrives at time 5500
             Then the viewport should shift so the new bar is visible
             And a "viewport:changed" event should be emitted
@@ -425,7 +513,7 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             And subsequent real-time bars should auto-scroll the viewport
 
         Scenario: Zoom anchor at viewport edge
-            Given the visible range is from 1000 to 5000
+            Given the visible range is timeRange [1000, 5000]
             When the viewport is zoomed by factor 0.5 anchored at 1000
             Then the left side should remain at 1000
             And the right side should shrink toward 1000
@@ -434,6 +522,114 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             When the visible range is set with from greater than to
             Then the viewport should reject the invalid range
             And the previous valid range should be preserved
+
+        Scenario: Auto-calculate price range from visible bars
+            Given bars with prices ranging from 95 to 110 are visible
+            When the viewport auto-calculates the price range
+            Then priceRange should expand slightly beyond [95, 110] for padding
+            And a "viewport:changed" event should be emitted with the new priceRange
+
+        Scenario: Set logarithmic price scale
+            When the price scale is set to "logarithmic"
+            Then a "viewport:changed" event should be emitted with { priceScale: "logarithmic" }
+
+        Scenario: Set percentage price scale
+            Given the first visible bar has close price 100
+            When the price scale is set to "percentage"
+            Then a "viewport:changed" event should be emitted with { priceScale: "percentage", basePrice: 100 }
+
+    Feature: Interaction Event Handling
+        As a developer
+        I want core to listen to renderer interaction events and translate them into state changes
+        So that user interactions flow through core before the renderer reacts
+
+        Background:
+            Given the chart state manager is initialized with the event bus
+            And the viewport is set to timeRange [1000, 5000] and priceRange [50, 150]
+
+        Scenario: Handle interaction:pan event
+            When an "interaction:pan" event is received with { deltaX: 100 }
+            Then the viewport manager should pan by the corresponding time delta
+            And a "viewport:changed" event should be emitted with the new timeRange
+            Note: renderer emits { deltaX: number }, core converts pixels to time delta using the current scale
+
+        Scenario: Handle interaction:zoom event
+            When an "interaction:zoom" event is received with { delta: 1.5, centerX: 400 }
+            Then the viewport manager should zoom by factor relative to delta, anchored at the time corresponding to centerX
+            And a "viewport:changed" event should be emitted with the new timeRange
+            Note: renderer emits { delta: number, centerX: number }, core converts pixels to time using the current scale
+
+        Scenario: Handle interaction:fit event
+            When an "interaction:fit" event is received with {}
+            Then the viewport should fit all loaded bar data with padding
+            And a "viewport:changed" event should be emitted
+            Note: renderer emits {}
+
+        Scenario: Handle interaction:pan with zoom clamping
+            Given the viewport is at the minimum zoom level
+            When an "interaction:zoom" event is received that would zoom in further
+            Then the viewport should be clamped to the minimum
+            And the "viewport:changed" event should reflect the clamped range
+
+        Scenario: Handle interaction:pan with boundary clamping
+            Given the earliest bar is at time 1000
+            And the viewport starts at time 1000
+            When an "interaction:pan" event is received with a negative deltaX (panning further left)
+            Then the viewport should be clamped so it does not scroll before the earliest bar
+
+        Scenario: Handle interaction:pan disables auto-scroll
+            Given auto-scroll is enabled
+            When an "interaction:pan" event is received
+            Then auto-scroll should be disabled
+
+        Scenario: Ignore interaction events when no data is loaded
+            Given no bars have been loaded
+            When an "interaction:pan" event is received
+            Then no "viewport:changed" event should be emitted
+
+    Feature: Loading and Error State
+        As a developer
+        I want core to emit loading and error states
+        So that the renderer can show appropriate feedback
+
+        Background:
+            Given the chart state manager is initialized with the event bus
+
+        Scenario: Emit chart:loading when fetching initial data
+            When a symbol is set and the initial getBars request begins
+            Then a "chart:loading" event should be emitted with { loading: true }
+            Note: payload is { loading: boolean, region?: "left" | "center" }
+
+        Scenario: Emit chart:loading false when data arrives
+            Given a "chart:loading" event with { loading: true } was emitted
+            When the getBars response arrives successfully
+            Then a "chart:loading" event should be emitted with { loading: false }
+
+        Scenario: Emit chart:loading for backward pagination
+            Given bars are loaded and the user scrolls to the left edge
+            When the adapter requests earlier history
+            Then a "chart:loading" event should be emitted with { loading: true, region: "left" }
+            When the earlier bars arrive
+            Then a "chart:loading" event should be emitted with { loading: false }
+
+        Scenario: Emit chart:error on symbol resolution failure
+            When symbol resolution fails with reason "Symbol not found"
+            Then a "chart:error" event should be emitted with { message: "Symbol not found" }
+            Note: payload is { message: string } | null
+
+        Scenario: Emit chart:error on data loading failure
+            When a getBars request fails with reason "Network error"
+            Then a "chart:error" event should be emitted with { message: "Network error" }
+
+        Scenario: Clear chart:error on successful data load
+            Given a "chart:error" event was emitted
+            When a new symbol is resolved and data loads successfully
+            Then a "chart:error" event should be emitted with null
+
+        Scenario: Emit chart:error null on reset
+            Given a "chart:error" event was emitted
+            When the state is reset
+            Then a "chart:error" event should be emitted with null
 
     Feature: Real-time Subscription Management
         As a developer
@@ -450,9 +646,10 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
 
         Scenario: Receive a real-time bar update
             Given an active subscription "sub_1" for "AAPL" at resolution "1"
+            And a series "candles" is mapped to this subscription
             When the datafeed delivers a new bar for "sub_1"
-            Then the bar should be merged into the store
-            And a "bars:realtime" event should be emitted
+            Then the bar should be merged into the series "candles" bar store
+            And a "series:data" event should be emitted for series "candles"
 
         Scenario: Remove a subscription
             Given an active subscription "sub_1"
@@ -492,17 +689,58 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
 
     Feature: Event Bus Integration
         As a developer
-        I want all state changes communicated via typed events
+        I want all state changes communicated via typed events with defined payloads
         So that the renderer and widget packages can react without direct imports
 
-        Scenario: Events are typed with correct payloads
+        Background:
             Given the chart event map type definition
-            When a "bars:historical" event is emitted
-            Then the payload must conform to { symbol: string, bars: Bar[], resolution: string }
+
+        Scenario: Core-to-renderer event payloads are typed
+            Then the event map should define these core-emitted events:
+            | Event             | Payload                                                                                                              |
+            | series:add        | { id: string, type: string, options?: SeriesOptions }                                                                |
+            | series:remove     | { id: string }                                                                                                       |
+            | series:update     | { id: string, options: Partial<SeriesOptions> }                                                                      |
+            | series:show       | { id: string }                                                                                                       |
+            | series:hide       | { id: string }                                                                                                       |
+            | series:type       | { id: string, type: string }                                                                                         |
+            | series:order      | { ids: string[] }                                                                                                    |
+            | series:data       | { id: string, bars: Bar[] }                                                                                          |
+            | viewport:changed  | { timeRange: [number, number], priceRange: [number, number], priceScale?: string, basePrice?: number }               |
+            | symbol:resolved   | { symbol: SymbolInfo }                                                                                               |
+            | chart:loading     | { loading: boolean, region?: string }                                                                                |
+            | chart:error       | { message: string } | null                                                                                           |
+
+        Scenario: Renderer-to-core event payloads are typed
+            Then the event map should define these renderer-emitted events:
+            | Event                  | Payload                                                         |
+            | interaction:crosshair  | { price: number, time: number, x: number, y: number } | null   |
+            | interaction:click      | { price: number, time: number, x: number, y: number }          |
+            | interaction:pan        | { deltaX: number }                                              |
+            | interaction:zoom       | { delta: number, centerX: number }                              |
+            | interaction:fit        | {}                                                              |
+            | renderer:ready         | {}                                                              |
+            | renderer:destroyed     | {}                                                              |
+
+        Scenario: Widget-to-renderer event payloads are typed
+            Then the event map should define these widget-emitted events:
+            | Event           | Payload          |
+            | theme:changed   | { theme: Theme } |
+
+        Scenario: Internal core event payloads are typed
+            Then the event map should define these internal events:
+            | Event                | Payload                                                    |
+            | bars:historical      | { symbol: string, bars: Bar[], resolution: string }        |
+            | bars:realtime        | { symbol: string, bar: Bar, resolution: string }           |
+            | state:reset          | {}                                                         |
+            | subscription:created | { guid: string, symbol: string, resolution: string }       |
+            | subscription:removed | { guid: string }                                           |
+            | datafeed:ready       | { configuration: DatafeedConfiguration }                   |
+            | symbol:error         | { symbol: string, reason: string }                         |
 
         Scenario: Multiple listeners receive the same event
-            Given two listeners subscribed to "bars:realtime"
-            When a "bars:realtime" event is emitted
+            Given two listeners subscribed to "series:data"
+            When a "series:data" event is emitted
             Then both listeners should receive the event with the same payload
 
         Scenario: Unsubscribed listener does not receive events
@@ -518,9 +756,9 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             And external code can listen on the same bus
 
         Scenario: Listener that throws does not crash other listeners
-            Given two listeners subscribed to "bars:realtime"
+            Given two listeners subscribed to "series:data"
             And the first listener throws an error
-            When a "bars:realtime" event is emitted
+            When a "series:data" event is emitted
             Then the second listener should still receive the event
             And the error should be reported but not propagated
 
@@ -545,20 +783,27 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
         Scenario: Adapter resolves a symbol and updates state
             When the adapter resolves symbol "AAPL"
             Then it should call the datafeed's resolveSymbol
-            And on success, emit a "symbol:resolved" event
+            And on success, emit a "symbol:resolved" event with { symbol: SymbolInfo }
             And update the chart state with the resolved symbol info
 
         Scenario: Adapter handles symbol resolution failure
             When the adapter resolves symbol "INVALID"
             Then it should call the datafeed's resolveSymbol
-            And on failure, emit a "symbol:error" event with the error reason
+            And on failure, emit a "symbol:error" event with { symbol: "INVALID", reason: string }
+            And emit a "chart:error" event with { message: string }
 
-        Scenario: Adapter fetches historical bars and populates the store
-            Given symbol "AAPL" is resolved
+        Scenario: Adapter fetches historical bars and populates series
+            Given symbol "AAPL" is resolved and a series "candles" exists
             When the adapter fetches bars for resolution "1D" from 1000 to 5000
             Then it should call the datafeed's getBars
-            And on success, add the bars to the store
-            And emit a "bars:historical" event
+            And on success, add the bars to the series "candles" bar store
+            And emit a "series:data" event for series "candles"
+
+        Scenario: Adapter emits chart:loading during data fetch
+            When the adapter begins fetching historical bars
+            Then it should emit "chart:loading" with { loading: true }
+            When the bars arrive
+            Then it should emit "chart:loading" with { loading: false }
 
         Scenario: Adapter starts a real-time subscription
             Given symbol "AAPL" is resolved
@@ -576,8 +821,9 @@ System: A framework-agnostic TypeScript library that manages financial chart sta
             Given symbol "AAPL" is resolved with bars from time 5000 to 10000 loaded
             When the viewport scrolls to require bars before time 5000
             Then the adapter should call getBars with a range ending at 5000 and firstDataRequest false
-            And on success, merge the earlier bars into the store
-            And emit a "bars:historical" event
+            And emit "chart:loading" with { loading: true, region: "left" }
+            And on success, merge the earlier bars into the series bar store
+            And emit a "series:data" event
 
         Scenario: Adapter discards stale getBars responses
             Given the adapter has requested bars for "AAPL" at resolution "1D"
