@@ -1,5 +1,9 @@
 # Journal
 
+## Day 0 — 16:24 — Bootstrap
+
+Scaffolded TypeScript library project with tsup for bundling and vitest for testing. All commands verified working: `npm run build` produces dist/index.js and dist/index.d.ts, `npm test` runs 49 tests across 3 files, `npm run lint` and `npm run format` pass cleanly. CI workflow configured in .github/workflows/evolve.yml. Project has 63/153 BDD scenarios already covered from previous sessions. Next session should tackle Chart State Management feature (7 uncovered scenarios: Set active symbol, Change resolution, Reset state, etc.).
+
 ## 2026-03-24 13:04 — Datafeed Contract and Symbol Info (22 scenarios)
 
 Implemented Symbol Info Model (10 scenarios) with validateSymbolInfo() covering session format validation including HHMM-HHMM, 24x7, and multi-segment sessions. Then implemented Datafeed Contract (12 scenarios) with IDatafeed interface and SimpleDatafeed class covering onReady, resolveSymbol, getBars, subscribeBars, unsubscribeBars, and searchSymbols. All tests passing. Next: Chart State Management feature (7 uncovered scenarios).
