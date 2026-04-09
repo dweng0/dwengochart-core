@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-09 16:27 — Serialize chart state (1 scenario)
+
+Covered "Serialize chart state" scenario from Chart State Management feature. Added SeriesInfo and SerializedChartState interfaces, extended ChartState with series tracking, viewport range, price range, and price scale state. Implemented serialize() method that returns symbol, resolution, series list, and viewport state. Test passes, all 55 tests green, build/lint/format clean. Coverage now 71/153 (46%). Next: "Deserialize chart state" scenario to complete the serialization pair, then continue with remaining Chart State Management scenarios.
+
 ## 2026-04-09 08:29 — Chart State + Price Formatting (2 scenarios)
 
 Covered 2 uncovered scenarios: (1) "Change resolution without an active symbol" — modified setResolution() to skip clearing bar store when no symbol is active, (2) "Format a price with euro currency" — extended formatPrice() to handle EUR currency symbol. Both tests pass, build/lint/format clean. Coverage increased to 70/153 (46%). Next: remaining Chart State Management scenarios (Concurrent symbol changes, Serialize/Deserialize state) or move to Series Management feature.
