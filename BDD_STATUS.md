@@ -69,7 +69,7 @@ Checked 153 scenario(s) across 4 test file(s).
 - [x] Change resolution
 - [x] Reset state
 - [ ] UNCOVERED: Concurrent symbol changes discard stale resolution
-- [ ] UNCOVERED: Change resolution without an active symbol
+- [x] Change resolution without an active symbol
 - [ ] UNCOVERED: Serialize chart state
 - [ ] UNCOVERED: Deserialize chart state
 
@@ -102,8 +102,8 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Auto-scroll to latest bar on new real-time data
 - [ ] UNCOVERED: Do not auto-scroll when user has panned away
 - [ ] UNCOVERED: Initial viewport before any data
-- [ ] UNCOVERED: Fit viewport to all loaded data
-- [ ] UNCOVERED: Pan with no data loaded
+- [x] Fit viewport to all loaded data
+- [x] Pan with no data loaded
 - [ ] UNCOVERED: Re-enable auto-scroll
 - [ ] UNCOVERED: Zoom anchor at viewport edge
 - [ ] UNCOVERED: Prevent inverted viewport
@@ -189,7 +189,7 @@ Checked 153 scenario(s) across 4 test file(s).
 - [x] Format a price with pricescale 1
 - [x] Format a price with high pricescale for crypto
 - [x] Format a price with currency symbol
-- [ ] UNCOVERED: Format a price with euro currency
+- [x] Format a price with euro currency
 - [x] Format zero price
 - [ ] UNCOVERED: Format a very large price
 
@@ -202,11 +202,10 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**66/153 scenarios covered.**
+**70/153 scenarios covered.**
 
-87 scenario(s) need tests:
+83 scenario(s) need tests:
 - Concurrent symbol changes discard stale resolution
-- Change resolution without an active symbol
 - Serialize chart state
 - Deserialize chart state
 - Add a series
@@ -228,8 +227,6 @@ Checked 153 scenario(s) across 4 test file(s).
 - Auto-scroll to latest bar on new real-time data
 - Do not auto-scroll when user has panned away
 - Initial viewport before any data
-- Fit viewport to all loaded data
-- Pan with no data loaded
 - Re-enable auto-scroll
 - Zoom anchor at viewport edge
 - Prevent inverted viewport
@@ -289,6 +286,5 @@ Checked 153 scenario(s) across 4 test file(s).
 - Resolution equivalence
 - Convert resolution to milliseconds
 - Convert intraday resolution to milliseconds
-- Format a price with euro currency
 - Format a very large price
 - Format respects timezone
