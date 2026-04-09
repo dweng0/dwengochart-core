@@ -551,3 +551,38 @@ export class ChartState {
     return this.resolution;
   }
 }
+
+/**
+ * Format a raw price into a display string using the symbol's pricescale.
+ *
+ * @param price - The raw price value (e.g., 10250 for $102.50 with pricescale 100)
+ * @param pricescale - The pricescale from SymbolInfo (e.g., 100 for 2 decimal places)
+ * @param currencyCode - Optional currency code (e.g., "USD", "EUR")
+ * @returns Formatted price string (e.g., "102.50" or "$102.50")
+ */
+export function formatPrice(
+  price: number,
+  pricescale: number,
+  currencyCode?: string,
+): string {
+  // Calculate the number of decimal places from pricescale
+  // pricescale 100 → 2 decimals, pricescale 100000000 → 8 decimals
+  const decimalPlaces = Math.log10(pricescale);
+
+  // Divide by pricescale to get the actual price
+  const formattedPrice = (price / pricescale).toFixed(decimalPlaces);
+
+  // Add currency symbol if provided
+  if (currencyCode) {
+    const currencySymbols: Record<string, string> = {
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+    };
+    const symbol = currencySymbols[currencyCode] || currencyCode;
+    return `${symbol}${formattedPrice}`;
+  }
+
+  return formattedPrice;
+}

@@ -6,6 +6,7 @@ import {
   BarSeriesStore,
   validateSymbolInfo,
   SymbolInfo,
+  formatPrice,
 } from "../src/index";
 
 describe("Scenario: Create a valid bar", () => {
@@ -632,5 +633,12 @@ describe("Scenario: Symbol info includes data capability flags", () => {
     expect(result.valid).toBe(true);
     expect(symbolInfo.has_daily).toBe(true);
     expect(symbolInfo.has_weekly_and_monthly).toBe(true);
+  });
+});
+
+describe("Scenario: Format a price with euro currency", () => {
+  it("format_a_price_with_euro_currency", () => {
+    const result = formatPrice(10250, 100, "EUR");
+    expect(result).toBe("€102.50");
   });
 });
