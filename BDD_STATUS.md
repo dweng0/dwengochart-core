@@ -71,7 +71,7 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Concurrent symbol changes discard stale resolution
 - [x] Change resolution without an active symbol
 - [x] Serialize chart state
-- [ ] UNCOVERED: Deserialize chart state
+- [x] Deserialize chart state
 
 ## Feature: Series Management
 
@@ -202,11 +202,10 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**71/153 scenarios covered.**
+**72/153 scenarios covered.**
 
-82 scenario(s) need tests:
+81 scenario(s) need tests:
 - Concurrent symbol changes discard stale resolution
-- Deserialize chart state
 - Add a series
 - Add multiple series
 - Remove a series

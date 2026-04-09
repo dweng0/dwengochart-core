@@ -599,6 +599,55 @@ export class ChartState {
       },
     };
   }
+
+  /**
+   * Deserialize chart state from a plain object
+   * Restores symbol, resolution, series, and viewport state
+   * Emits appropriate events for each restored property
+   */
+  deserialize(state: SerializedChartState): void {
+    // Restore symbol and resolution
+    if (state.symbol && state.resolution) {
+      // We need to reconstruct a SymbolInfo - for now we use a minimal one
+      // In a real implementation, this would come from a datafeed resolveSymbol call
+      const symbolInfo: SymbolInfo = {
+        name: state.symbol,
+        exchange: "",
+        type: "stock",
+        timezone: "UTC",
+        session: "24x7",
+        minmov: 1,
+        pricescale: 100,
+        has_intraday: true,
+        has_no_volume: false,
+      };
+      this.symbol = symbolInfo;
+      this.resolution = state.resolution;
+
+      if (this.eventBus) {
+        this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
+      }
+    }
+
+    // Restore series
+    this.series.clear();
+    if (state.series) {
+      for (const series of state.series) {
+        this.series.set(series.id, series);
+      }
+    }
+
+    // Restore viewport
+    this.viewportRange = state.viewport?.range;
+    this.priceRange = state.viewport?.priceRange;
+    this.priceScale = state.viewport?.scale || "linear";
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        range: this.viewportRange,
+      });
+    }
+  }
 }
 
 /**

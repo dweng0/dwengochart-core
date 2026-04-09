@@ -180,3 +180,38 @@ describe("Scenario: Serialize chart state", () => {
     expect(serialized.viewport.scale).toBe("linear");
   });
 });
+
+describe("Scenario: Deserialize chart state", () => {
+  it("deserialize_chart_state", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    const serializedState = {
+      symbol: "AAPL",
+      resolution: "1D",
+      series: [
+        { id: "candles", type: "candlestick", options: {} },
+        { id: "ma20", type: "line", options: { color: "orange" } },
+      ],
+      viewport: {
+        range: { from: 1000, to: 5000 },
+        priceRange: { min: 90, max: 110 },
+        scale: "linear" as const,
+      },
+    };
+
+    const symbolCallback = vi.fn();
+    const viewportCallback = vi.fn();
+    eventBus.on("symbol:resolved", symbolCallback);
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Deserialize the state
+    chartState.deserialize(serializedState);
+
+    expect(chartState.getSymbol()).toBe("AAPL");
+    expect(chartState.getResolution()).toBe("1D");
+    expect(symbolCallback).toHaveBeenCalledTimes(1);
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
