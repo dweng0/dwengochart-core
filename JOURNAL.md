@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-09 08:29 — Chart State + Price Formatting (2 scenarios)
+
+Covered 2 uncovered scenarios: (1) "Change resolution without an active symbol" — modified setResolution() to skip clearing bar store when no symbol is active, (2) "Format a price with euro currency" — extended formatPrice() to handle EUR currency symbol. Both tests pass, build/lint/format clean. Coverage increased to 70/153 (46%). Next: remaining Chart State Management scenarios (Concurrent symbol changes, Serialize/Deserialize state) or move to Series Management feature.
+
 ## 2026-04-09 08:35 — Chart State + Price Formatting (2 scenarios)
 
 Covered 2 uncovered scenarios: (1) "Change resolution without an active symbol" — modified setResolution() to only clear bar store when a symbol is active, (2) "Format a price with euro currency" — added formatPrice() function with currency symbol support (USD, EUR, GBP, JPY). All 54 tests pass, build/lint/format clean. Coverage now 70/153 (46%). Next: continue with remaining Chart State Management scenarios (Concurrent symbol changes, Serialize/Deserialize state) or tackle Series Management feature.
