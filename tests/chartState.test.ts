@@ -215,3 +215,61 @@ describe("Scenario: Deserialize chart state", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Concurrent symbol changes discard stale resolution", () => {
+  it("concurrent_symbol_changes_discard_stale_resolution", async () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    const aaplSymbol: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+
+    const googSymbol: SymbolInfo = {
+      name: "GOOG",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+
+    const symbolCallback = vi.fn();
+    eventBus.on("symbol:resolved", symbolCallback);
+
+    // Start resolving AAPL (returns a request ID)
+    const requestId1 = chartState.beginSymbolResolution("AAPL", "1D");
+
+    // Before AAPL resolves, start resolving GOOG
+    const requestId2 = chartState.beginSymbolResolution("GOOG", "1H");
+
+    // Simulate AAPL resolution completing (should be discarded)
+    chartState.completeSymbolResolution(requestId1, aaplSymbol);
+
+    // State should still be undefined because AAPL was stale
+    expect(chartState.getSymbol()).toBeUndefined();
+
+    // Simulate GOOG resolution completing (should be accepted)
+    chartState.completeSymbolResolution(requestId2, googSymbol);
+
+    // State should now reflect GOOG
+    expect(chartState.getSymbol()).toBe("GOOG");
+    expect(chartState.getResolution()).toBe("1H");
+
+    // Only one symbol:resolved event should have been emitted (for GOOG)
+    expect(symbolCallback).toHaveBeenCalledTimes(1);
+    expect(symbolCallback.mock.calls[0][0].symbol.name).toBe("GOOG");
+  });
+});

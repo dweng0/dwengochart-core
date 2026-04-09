@@ -68,7 +68,7 @@ Checked 153 scenario(s) across 4 test file(s).
 - [x] Set the active symbol
 - [x] Change resolution
 - [x] Reset state
-- [ ] UNCOVERED: Concurrent symbol changes discard stale resolution
+- [x] Concurrent symbol changes discard stale resolution
 - [x] Change resolution without an active symbol
 - [x] Serialize chart state
 - [x] Deserialize chart state
@@ -101,7 +101,7 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Zoom in with minimum range limit
 - [ ] UNCOVERED: Auto-scroll to latest bar on new real-time data
 - [ ] UNCOVERED: Do not auto-scroll when user has panned away
-- [ ] UNCOVERED: Initial viewport before any data
+- [x] Initial viewport before any data
 - [x] Fit viewport to all loaded data
 - [x] Pan with no data loaded
 - [ ] UNCOVERED: Re-enable auto-scroll
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**72/153 scenarios covered.**
+**74/153 scenarios covered.**
 
-81 scenario(s) need tests:
-- Concurrent symbol changes discard stale resolution
+79 scenario(s) need tests:
 - Add a series
 - Add multiple series
 - Remove a series
@@ -224,7 +223,6 @@ Checked 153 scenario(s) across 4 test file(s).
 - Zoom in with minimum range limit
 - Auto-scroll to latest bar on new real-time data
 - Do not auto-scroll when user has panned away
-- Initial viewport before any data
 - Re-enable auto-scroll
 - Zoom anchor at viewport edge
 - Prevent inverted viewport

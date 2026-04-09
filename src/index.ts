@@ -505,6 +505,8 @@ export class ChartState {
   private viewportRange: { from: number; to: number } | undefined;
   private priceRange: { min: number; max: number } | undefined;
   private priceScale: "linear" | "logarithmic" | "percentage" = "linear";
+  private pendingSymbolRequest: number | undefined;
+  private symbolRequestCounter = 0;
 
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
@@ -646,6 +648,39 @@ export class ChartState {
       this.eventBus.emit("viewport:changed", {
         range: this.viewportRange,
       });
+    }
+  }
+
+  /**
+   * Begin an asynchronous symbol resolution
+   * Returns a request ID that must be passed to completeSymbolResolution
+   * If a new symbol resolution is started before the previous one completes,
+   * the previous one will be discarded
+   */
+  beginSymbolResolution(_symbolName: string, resolution: string): number {
+    const requestId = ++this.symbolRequestCounter;
+    this.pendingSymbolRequest = requestId;
+    this.resolution = resolution;
+    return requestId;
+  }
+
+  /**
+   * Complete a symbol resolution with the resolved SymbolInfo
+   * If the request ID is stale (a newer resolution was started),
+   * the result is discarded
+   */
+  completeSymbolResolution(requestId: number, symbolInfo: SymbolInfo): void {
+    // Only accept the resolution if it's still the pending request
+    if (this.pendingSymbolRequest !== requestId) {
+      // Stale resolution, discard it
+      return;
+    }
+
+    this.symbol = symbolInfo;
+    this.pendingSymbolRequest = undefined;
+
+    if (this.eventBus) {
+      this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
     }
   }
 }

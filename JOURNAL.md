@@ -1,8 +1,8 @@
 # Journal
 
-## 2026-04-09 16:27 — Chart State Serialization (2 scenarios)
+## 2026-04-09 16:27 — Chart State Management complete (3 scenarios)
 
-Covered "Serialize chart state" and "Deserialize chart state" scenarios from Chart State Management feature. Added SeriesInfo and SerializedChartState interfaces, extended ChartState with series tracking, viewport range, price range, and price scale state. Implemented serialize() and deserialize() methods — serialize returns symbol, resolution, series list, and viewport state; deserialize restores all properties and emits symbol:resolved and viewport:changed events. Tests pass, all 56 tests green, build/lint/format clean. Coverage now 72/153 (47%). Next: "Concurrent symbol changes discard stale resolution" to complete Chart State Management, then move to Series Management feature.
+Covered all remaining Chart State Management scenarios: (1) "Serialize chart state" — added serialize() method returning symbol, resolution, series list, and viewport state; (2) "Deserialize chart state" — added deserialize() method that restores all properties and emits symbol:resolved and viewport:changed events; (3) "Concurrent symbol changes discard stale resolution" — implemented beginSymbolResolution/completeSymbolResolution pattern with request ID tracking to discard stale async resolutions. All 57 tests pass, build/lint/format clean. Chart State Management feature is now 100% complete (7/7 scenarios). Coverage now 74/153 (48%). Next session should tackle Series Management feature (14 scenarios, highest priority uncovered feature) starting with "Add a series".
 
 ## 2026-04-09 08:29 — Chart State + Price Formatting (2 scenarios)
 
