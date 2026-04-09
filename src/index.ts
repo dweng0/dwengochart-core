@@ -460,6 +460,30 @@ export interface ChartStateEvents {
 }
 
 /**
+ * Series configuration
+ */
+export interface SeriesInfo {
+  id: string;
+  type: string;
+  options?: Record<string, unknown>;
+  visible?: boolean;
+}
+
+/**
+ * Serialized chart state
+ */
+export interface SerializedChartState {
+  symbol: string | undefined;
+  resolution: string | undefined;
+  series: SeriesInfo[];
+  viewport: {
+    range?: { from: number; to: number };
+    priceRange?: { min: number; max: number };
+    scale?: "linear" | "logarithmic" | "percentage";
+  };
+}
+
+/**
  * Options for ChartState
  */
 export interface ChartStateOptions {
@@ -477,6 +501,10 @@ export class ChartState {
   private resolution: string | undefined;
   private eventBus: EventBus<ChartStateEvents> | undefined;
   private barStore: BarSeriesStore | undefined;
+  private series: Map<string, SeriesInfo> = new Map();
+  private viewportRange: { from: number; to: number } | undefined;
+  private priceRange: { min: number; max: number } | undefined;
+  private priceScale: "linear" | "logarithmic" | "percentage" = "linear";
 
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
@@ -549,6 +577,27 @@ export class ChartState {
    */
   getResolution(): string | undefined {
     return this.resolution;
+  }
+
+  /**
+   * Serialize the chart state to a plain object
+   */
+  serialize(): SerializedChartState {
+    const seriesArray: SeriesInfo[] = [];
+    for (const series of this.series.values()) {
+      seriesArray.push(series);
+    }
+
+    return {
+      symbol: this.symbol?.name,
+      resolution: this.resolution,
+      series: seriesArray,
+      viewport: {
+        range: this.viewportRange,
+        priceRange: this.priceRange,
+        scale: this.priceScale,
+      },
+    };
   }
 }
 

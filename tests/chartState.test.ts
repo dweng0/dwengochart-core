@@ -147,3 +147,36 @@ describe("Scenario: Change resolution without an active symbol", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Serialize chart state", () => {
+  it("serialize_chart_state", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+
+    // Set symbol and resolution
+    chartState.setSymbol(symbolInfo, "1D");
+
+    // Serialize the state
+    const serialized = chartState.serialize();
+
+    expect(serialized.symbol).toBe("AAPL");
+    expect(serialized.resolution).toBe("1D");
+    expect(serialized.series).toEqual([]);
+    expect(serialized.viewport.range).toBeUndefined();
+    expect(serialized.viewport.priceRange).toBeUndefined();
+    expect(serialized.viewport.scale).toBe("linear");
+  });
+});
