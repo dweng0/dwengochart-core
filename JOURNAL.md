@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-09 08:35 — Chart State + Price Formatting (2 scenarios)
+
+Covered 2 uncovered scenarios: (1) "Change resolution without an active symbol" — modified setResolution() to only clear bar store when a symbol is active, (2) "Format a price with euro currency" — added formatPrice() function with currency symbol support (USD, EUR, GBP, JPY). All 54 tests pass, build/lint/format clean. Coverage now 70/153 (46%). Next: continue with remaining Chart State Management scenarios (Concurrent symbol changes, Serialize/Deserialize state) or tackle Series Management feature.
+
 ## 2026-04-09 00:14 — Chart State Management (3 scenarios)
 
 Implemented the Chart State Management feature — covered "Set the active symbol", "Change resolution", and "Reset state" scenarios. Added ChartState class with eventBus integration using @yatamazuki/typed-eventbus. The class tracks symbol/resolution state, emits symbol:resolved and viewport:changed events, and clears the bar store on resolution change or reset. All 52 tests pass, build/lint/format clean. Coverage now 66/153 (43%). Next: continue with Chart State Management (4 remaining: Concurrent symbol changes, Change resolution without active symbol, Serialize/Deserialize state) or move to Series Management.
