@@ -498,12 +498,12 @@ export class ChartState {
 
   /**
    * Change the resolution
-   * Clears the bar store and emits a "viewport:changed" event
+   * Clears the bar store only if a symbol is active, and emits a "viewport:changed" event
    */
   setResolution(resolution: string): void {
     this.resolution = resolution;
 
-    if (this.barStore) {
+    if (this.barStore && this.symbol) {
       this.barStore.clear();
     }
 

@@ -120,3 +120,30 @@ describe("Scenario: Reset state", () => {
     expect(resetCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Change resolution without an active symbol", () => {
+  it("change_resolution_without_an_active_symbol", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    // Add some bars to the store (simulating pre-loaded data without a symbol)
+    barStore.addBars([
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 107, low: 97, close: 105 },
+    ]);
+
+    expect(chartState.getSymbol()).toBeUndefined();
+    expect(barStore.getBarCount()).toBe(2);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Change resolution without a symbol set
+    chartState.setResolution("1H");
+
+    expect(chartState.getResolution()).toBe("1H");
+    expect(barStore.getBarCount()).toBe(2); // Bar store should NOT be cleared
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
