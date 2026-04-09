@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-09 00:14 — Chart State Management (3 scenarios)
+
+Implemented the Chart State Management feature — covered "Set the active symbol", "Change resolution", and "Reset state" scenarios. Added ChartState class with eventBus integration using @yatamazuki/typed-eventbus. The class tracks symbol/resolution state, emits symbol:resolved and viewport:changed events, and clears the bar store on resolution change or reset. All 52 tests pass, build/lint/format clean. Coverage now 66/153 (43%). Next: continue with Chart State Management (4 remaining: Concurrent symbol changes, Change resolution without active symbol, Serialize/Deserialize state) or move to Series Management.
+
 ## Day 0 — 16:24 — Bootstrap
 
 Scaffolded TypeScript library project with tsup for bundling and vitest for testing. All commands verified working: `npm run build` produces dist/index.js and dist/index.d.ts, `npm test` runs 49 tests across 3 files, `npm run lint` and `npm run format` pass cleanly. CI workflow configured in .github/workflows/evolve.yml. Project has 63/153 BDD scenarios already covered from previous sessions. Next session should tackle Chart State Management feature (7 uncovered scenarios: Set active symbol, Change resolution, Reset state, etc.).
