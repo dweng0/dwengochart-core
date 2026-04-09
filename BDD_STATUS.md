@@ -1,6 +1,6 @@
 # BDD Status
 
-Checked 153 scenario(s) across 3 test file(s).
+Checked 153 scenario(s) across 4 test file(s).
 
 
 ## Feature: Bar Data Model
@@ -65,9 +65,9 @@ Checked 153 scenario(s) across 3 test file(s).
 
 ## Feature: Chart State Management
 
-- [ ] UNCOVERED: Set the active symbol
-- [ ] UNCOVERED: Change resolution
-- [ ] UNCOVERED: Reset state
+- [x] Set the active symbol
+- [x] Change resolution
+- [x] Reset state
 - [ ] UNCOVERED: Concurrent symbol changes discard stale resolution
 - [ ] UNCOVERED: Change resolution without an active symbol
 - [ ] UNCOVERED: Serialize chart state
@@ -202,12 +202,9 @@ Checked 153 scenario(s) across 3 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**63/153 scenarios covered.**
+**66/153 scenarios covered.**
 
-90 scenario(s) need tests:
-- Set the active symbol
-- Change resolution
-- Reset state
+87 scenario(s) need tests:
 - Concurrent symbol changes discard stale resolution
 - Change resolution without an active symbol
 - Serialize chart state

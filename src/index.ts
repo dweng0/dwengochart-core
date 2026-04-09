@@ -1,6 +1,8 @@
 // @dwengochart/core
 // Framework-agnostic financial chart state management
 
+import { EventBus } from "@yatamazuki/typed-eventbus";
+
 /**
  * OHLCV Bar data structure
  */
@@ -443,4 +445,109 @@ export function validateSymbolInfo(
   }
 
   return { valid: true };
+}
+
+/**
+ * Chart state events interface
+ */
+export interface ChartStateEvents {
+  "symbol:resolved": { symbol: SymbolInfo };
+  "viewport:changed": { range?: { from: number; to: number } };
+  "state:reset": undefined;
+  "series:data": { seriesId: string; bars: Bar[] };
+  "chart:loading": boolean;
+  "chart:error": string | null;
+}
+
+/**
+ * Options for ChartState
+ */
+export interface ChartStateOptions {
+  eventBus?: EventBus<ChartStateEvents>;
+  barStore?: BarSeriesStore;
+}
+
+/**
+ * ChartState manages the centralized state for a financial chart.
+ * It tracks the current symbol, resolution, and viewport state,
+ * and emits events to keep all components synchronized.
+ */
+export class ChartState {
+  private symbol: SymbolInfo | undefined;
+  private resolution: string | undefined;
+  private eventBus: EventBus<ChartStateEvents> | undefined;
+  private barStore: BarSeriesStore | undefined;
+
+  constructor(options?: ChartStateOptions) {
+    this.eventBus = options?.eventBus;
+    this.barStore = options?.barStore;
+  }
+
+  /**
+   * Set the active symbol and resolution
+   * Emits a "symbol:resolved" event with the symbol info
+   */
+  setSymbol(symbolInfo: SymbolInfo, resolution: string): void {
+    this.symbol = symbolInfo;
+    this.resolution = resolution;
+
+    if (this.eventBus) {
+      this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
+    }
+  }
+
+  /**
+   * Change the resolution
+   * Clears the bar store and emits a "viewport:changed" event
+   */
+  setResolution(resolution: string): void {
+    this.resolution = resolution;
+
+    if (this.barStore) {
+      this.barStore.clear();
+    }
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {});
+    }
+  }
+
+  /**
+   * Reset the chart state
+   * Clears the symbol, resolution, and bar store
+   * Emits a "state:reset" event
+   */
+  reset(): void {
+    this.symbol = undefined;
+    this.resolution = undefined;
+
+    if (this.barStore) {
+      this.barStore.clear();
+    }
+
+    if (this.eventBus) {
+      this.eventBus.emit("state:reset");
+    }
+  }
+
+  /**
+   * Get the current symbol name
+   */
+  getSymbol(): string | undefined {
+    return this.symbol?.name;
+  }
+
+  /**
+   * Get the current symbol info
+   */
+  getSymbolInfo(): SymbolInfo | undefined {
+    return this.symbol;
+  }
+
+  /**
+   * Get the current resolution
+   */
+  getResolution(): string | undefined {
+    return this.resolution;
+  }
 }
