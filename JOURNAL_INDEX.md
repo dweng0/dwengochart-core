@@ -8,3 +8,4 @@
 | 2026-04-09 | 16:27 | 74/153 | 2026-04-09 16:36: implement 'Serialize chart state', 'Deserialize chart state', and 'Concurrent symbol changes discard stale resolution' scenarios — Chart State Management feature complete |
 | 2026-04-09 | 16:27 | 74/153 | update journal index;implement 'Deserialize chart state' scenario update journal index;implement 'Serialize chart state' scenario |
 | 2026-04-10 | 00:17 | 85/153 | 2026-04-10 00:20: implement 'Add a series' scenario |
+| 2026-04-10 | 08:29 | 97/153 | 2026-04-10 08:36: implement 'Format respects timezone' scenario;2026-04-10 08:34: implement 'Format a very large price' scenario 2026-04-10 08:33: fix test name for multi-unit resolutions scenario;2026-04-10 08:32: implement Supported Resolutions (11 scenarios) |
