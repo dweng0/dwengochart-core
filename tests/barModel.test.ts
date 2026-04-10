@@ -642,3 +642,13 @@ describe("Scenario: Format a price with euro currency", () => {
     expect(result).toBe("€102.50");
   });
 });
+
+describe("Scenario: Format a very large price", () => {
+  it("format_a_very_large_price", () => {
+    // Given a symbol with pricescale 100
+    // When price 10000050 is formatted
+    const result = formatPrice(10000050, 100);
+    // Then the result should be "100,000.50"
+    expect(result).toBe("100,000.50");
+  });
+});

@@ -922,7 +922,13 @@ export function formatPrice(
   const decimalPlaces = Math.log10(pricescale);
 
   // Divide by pricescale to get the actual price
-  const formattedPrice = (price / pricescale).toFixed(decimalPlaces);
+  const actualPrice = price / pricescale;
+
+  // Format with thousand separators using toLocaleString
+  const formattedPrice = actualPrice.toLocaleString("en-US", {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  });
 
   // Add currency symbol if provided
   if (currencyCode) {
