@@ -94,7 +94,7 @@ Checked 153 scenario(s) across 5 test file(s).
 
 ## Feature: Viewport State
 
-- [ ] UNCOVERED: Set the visible range
+- [x] Set the visible range
 - [ ] UNCOVERED: Pan the viewport
 - [ ] UNCOVERED: Zoom the viewport
 - [ ] UNCOVERED: Zoom out with maximum range limit
@@ -108,8 +108,8 @@ Checked 153 scenario(s) across 5 test file(s).
 - [ ] UNCOVERED: Zoom anchor at viewport edge
 - [ ] UNCOVERED: Prevent inverted viewport
 - [ ] UNCOVERED: Auto-calculate price range from visible bars
-- [ ] UNCOVERED: Set logarithmic price scale
-- [ ] UNCOVERED: Set percentage price scale
+- [x] Set logarithmic price scale
+- [x] Set percentage price scale
 
 ## Feature: Interaction Event Handling
 
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**97/153 scenarios covered.**
+**100/153 scenarios covered.**
 
-56 scenario(s) need tests:
-- Set the visible range
+53 scenario(s) need tests:
 - Pan the viewport
 - Zoom the viewport
 - Zoom out with maximum range limit
@@ -216,8 +215,6 @@ Checked 153 scenario(s) across 5 test file(s).
 - Zoom anchor at viewport edge
 - Prevent inverted viewport
 - Auto-calculate price range from visible bars
-- Set logarithmic price scale
-- Set percentage price scale
 - Handle interaction:pan event
 - Handle interaction:zoom event
 - Handle interaction:fit event

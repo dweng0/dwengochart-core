@@ -929,6 +929,29 @@ export class ChartState {
       });
     }
   }
+
+  /**
+   * Pan the viewport by a delta value
+   * Emits a "viewport:changed" event with the new timeRange
+   */
+  panViewport(delta: number): void {
+    if (!this.viewportRange) {
+      return;
+    }
+
+    const newFrom = this.viewportRange.from + delta;
+    const newTo = this.viewportRange.to + delta;
+    this.viewportRange = { from: newFrom, to: newTo };
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange: [newFrom, newTo],
+        priceRange: this.priceRange
+          ? [this.priceRange.min, this.priceRange.max]
+          : undefined,
+      });
+    }
+  }
 }
 
 /**

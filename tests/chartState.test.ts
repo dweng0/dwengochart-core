@@ -646,3 +646,26 @@ describe("Scenario: Set the visible range", () => {
     });
   });
 });
+
+describe("Scenario: Pan the viewport", () => {
+  it("pan_the_viewport", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set initial visible range
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Pan the viewport by delta -1000
+    chartState.panViewport(-1000);
+
+    // Verify the viewport was panned (via serialize)
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 0, to: 4000 });
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
