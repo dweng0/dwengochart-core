@@ -177,7 +177,7 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Parse monthly resolution
 - [x] Reject invalid resolution string
 - [x] Reject negative resolution
-- [ ] UNCOVERED: Parse multi-unit resolutions
+- [x] Parse multi-unit resolutions
 - [x] Parse seconds resolutions
 - [x] Resolution equivalence
 - [x] Convert resolution to milliseconds
@@ -202,9 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**94/153 scenarios covered.**
+**95/153 scenarios covered.**
 
-59 scenario(s) need tests:
+58 scenario(s) need tests:
 - Set the visible range
 - Pan the viewport
 - Zoom the viewport
@@ -261,6 +261,5 @@ Checked 153 scenario(s) across 5 test file(s).
 - Adapter handles concurrent getBars requests
 - Adapter teardown cleans up all resources
 - Adapter normalizes synchronous datafeed callbacks to async
-- Parse multi-unit resolutions
 - Format a very large price
 - Format respects timezone
