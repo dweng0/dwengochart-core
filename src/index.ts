@@ -532,6 +532,8 @@ export class ChartState {
   private priceScale: "linear" | "logarithmic" | "percentage" = "linear";
   private pendingSymbolRequest: number | undefined;
   private symbolRequestCounter = 0;
+  private minRange: number | undefined;
+  private maxRange: number | undefined;
 
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
@@ -954,8 +956,17 @@ export class ChartState {
   }
 
   /**
+   * Set viewport range limits for zoom clamping
+   */
+  setViewportRangeLimits(minRange: number, maxRange: number): void {
+    this.minRange = minRange;
+    this.maxRange = maxRange;
+  }
+
+  /**
    * Zoom the viewport by a factor anchored at a specific point
    * Factor < 1 zooms in (shrinks range), factor > 1 zooms out (expands range)
+   * Respects min/max range limits if set
    * Emits a "viewport:changed" event with the new timeRange
    */
   zoomViewport(factor: number, anchor: number): void {
@@ -974,8 +985,22 @@ export class ChartState {
     const newAnchorToLeft = anchorToLeft * factor;
     const newAnchorToRight = anchorToRight * factor;
 
-    const newFrom = anchor - newAnchorToLeft;
-    const newTo = anchor + newAnchorToRight;
+    let newFrom = anchor - newAnchorToLeft;
+    let newTo = anchor + newAnchorToRight;
+
+    // Apply range limits if set
+    let newWidth = newTo - newFrom;
+    if (this.minRange !== undefined && newWidth < this.minRange) {
+      // Clamp to minimum range
+      const scale = this.minRange / newWidth;
+      newFrom = anchor - (anchor - newFrom) * scale;
+      newTo = anchor + (newTo - anchor) * scale;
+    } else if (this.maxRange !== undefined && newWidth > this.maxRange) {
+      // Clamp to maximum range
+      const scale = this.maxRange / newWidth;
+      newFrom = anchor - (anchor - newFrom) * scale;
+      newTo = anchor + (newTo - anchor) * scale;
+    }
 
     this.viewportRange = { from: newFrom, to: newTo };
 

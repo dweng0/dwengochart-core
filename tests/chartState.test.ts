@@ -694,3 +694,57 @@ describe("Scenario: Zoom the viewport", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Zoom out with maximum range limit", () => {
+  it("zoom_out_with_maximum_range_limit", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set maximum range limit
+    chartState.setViewportRangeLimits(100, 100000);
+
+    // Set initial visible range [1000, 5000] (width 4000)
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Zoom out by factor 100 (would make width 400000, but should be clamped to 100000)
+    chartState.zoomViewport(100, 3000);
+
+    // Verify the viewport was clamped to maximum (width 100000)
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+    expect(range.to - range.from).toBe(100000);
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Zoom in with minimum range limit", () => {
+  it("zoom_in_with_minimum_range_limit", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set minimum range limit
+    chartState.setViewportRangeLimits(100, 100000);
+
+    // Set initial visible range [1000, 5000] (width 4000)
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Zoom in by factor 0.001 (would make width 4, but should be clamped to 100)
+    chartState.zoomViewport(0.001, 3000);
+
+    // Verify the viewport was clamped to minimum (width 100)
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+    expect(range.to - range.from).toBe(100);
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
