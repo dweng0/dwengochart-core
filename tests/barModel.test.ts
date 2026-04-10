@@ -7,6 +7,7 @@ import {
   validateSymbolInfo,
   SymbolInfo,
   formatPrice,
+  formatTime,
 } from "../src/index";
 
 describe("Scenario: Create a valid bar", () => {
@@ -650,5 +651,18 @@ describe("Scenario: Format a very large price", () => {
     const result = formatPrice(10000050, 100);
     // Then the result should be "100,000.50"
     expect(result).toBe("100,000.50");
+  });
+});
+
+describe("Scenario: Format respects timezone", () => {
+  it("format_respects_timezone", () => {
+    // Given resolution "5" and timezone "Asia/Tokyo"
+    // When timestamp 1700000000000 is formatted
+    const result = formatTime(1700000000000, "5", "Asia/Tokyo");
+    // Then the result should reflect Tokyo time, not UTC
+    // 1700000000000 is Nov 14, 2023 22:13:20 UTC
+    // In Tokyo (UTC+9), this is Nov 15, 2023 07:13:20
+    // So the formatted time should be "07:13" (not "22:13" which would be UTC)
+    expect(result).toBe("07:13");
   });
 });

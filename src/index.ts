@@ -1071,3 +1071,56 @@ export function resolutionToMilliseconds(resolution: string): number {
       throw new Error("unknown resolution type");
   }
 }
+
+/**
+ * Format a timestamp into a display string based on resolution and timezone.
+ *
+ * @param timestamp - Unix timestamp in milliseconds
+ * @param resolution - Resolution string (e.g., "1D", "5", "1W", "1M")
+ * @param timezone - IANA timezone string (e.g., "America/New_York", "Asia/Tokyo", "UTC")
+ * @returns Formatted time string
+ */
+export function formatTime(
+  timestamp: number,
+  resolution: string,
+  timezone: string = "UTC",
+): string {
+  const date = new Date(timestamp);
+
+  // Parse the resolution to determine the format
+  const parsed = parseResolution(resolution);
+
+  // Format options based on resolution type
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: timezone,
+    hour12: false,
+  };
+
+  switch (parsed.type) {
+    case "seconds":
+    case "minutes":
+    case "hours":
+      // Intraday: show time (e.g., "14:13")
+      options.hour = "2-digit";
+      options.minute = "2-digit";
+      break;
+    case "days":
+      // Daily: show month and day (e.g., "Nov 14")
+      options.month = "short";
+      options.day = "2-digit";
+      break;
+    case "weeks":
+      // Weekly: show month and day (e.g., "Nov 13")
+      options.month = "short";
+      options.day = "2-digit";
+      break;
+    case "months":
+      // Monthly: show month and year (e.g., "Nov 2023")
+      options.month = "short";
+      options.year = "numeric";
+      break;
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  return formatter.format(date);
+}
