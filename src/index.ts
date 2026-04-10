@@ -938,3 +938,130 @@ export function formatPrice(
 
   return formattedPrice;
 }
+
+/**
+ * Parsed resolution result
+ */
+export interface ParsedResolution {
+  type: "seconds" | "minutes" | "hours" | "days" | "weeks" | "months";
+  value: number;
+}
+
+/**
+ * Parse a resolution string into a structured format.
+ *
+ * Supported formats:
+ * - Seconds: "1S", "5S", "30S"
+ * - Minutes: "1", "5", "15", "30", "60" (plain numbers are minutes)
+ * - Hours: "1H", "2H", "4H"
+ * - Days: "1D", "2D", "3D"
+ * - Weeks: "1W", "2W"
+ * - Months: "1M", "2M", "3M"
+ *
+ * @param resolution - The resolution string to parse
+ * @returns ParsedResolution with type and value
+ * @throws Error if the resolution format is invalid
+ */
+export function parseResolution(resolution: string): ParsedResolution {
+  if (!resolution || resolution.trim() === "") {
+    throw new Error("invalid resolution format");
+  }
+
+  // Check for negative numbers first
+  if (resolution.startsWith("-")) {
+    throw new Error("resolution must be positive");
+  }
+
+  const upper = resolution.toUpperCase();
+
+  // Check for seconds (e.g., "1S", "5S")
+  const secondsMatch = upper.match(/^(\d+)S$/);
+  if (secondsMatch) {
+    const value = parseInt(secondsMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "seconds", value };
+  }
+
+  // Check for hours (e.g., "1H", "4H")
+  const hoursMatch = upper.match(/^(\d+)H$/);
+  if (hoursMatch) {
+    const value = parseInt(hoursMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "hours", value };
+  }
+
+  // Check for days (e.g., "1D", "2D")
+  const daysMatch = upper.match(/^(\d+)D$/);
+  if (daysMatch) {
+    const value = parseInt(daysMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "days", value };
+  }
+
+  // Check for weeks (e.g., "1W", "2W")
+  const weeksMatch = upper.match(/^(\d+)W$/);
+  if (weeksMatch) {
+    const value = parseInt(weeksMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "weeks", value };
+  }
+
+  // Check for months (e.g., "1M", "3M")
+  const monthsMatch = upper.match(/^(\d+)M$/);
+  if (monthsMatch) {
+    const value = parseInt(monthsMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "months", value };
+  }
+
+  // Check for plain number (minutes, e.g., "1", "5", "15")
+  const minutesMatch = upper.match(/^(\d+)$/);
+  if (minutesMatch) {
+    const value = parseInt(minutesMatch[1], 10);
+    if (value <= 0) {
+      throw new Error("resolution must be positive");
+    }
+    return { type: "minutes", value };
+  }
+
+  // No match - invalid format
+  throw new Error("invalid resolution format");
+}
+
+/**
+ * Convert a resolution string to milliseconds.
+ *
+ * @param resolution - The resolution string (e.g., "1D", "5", "1H")
+ * @returns The resolution in milliseconds
+ */
+export function resolutionToMilliseconds(resolution: string): number {
+  const parsed = parseResolution(resolution);
+
+  switch (parsed.type) {
+    case "seconds":
+      return parsed.value * 1000;
+    case "minutes":
+      return parsed.value * 60 * 1000;
+    case "hours":
+      return parsed.value * 60 * 60 * 1000;
+    case "days":
+      return parsed.value * 24 * 60 * 60 * 1000;
+    case "weeks":
+      return parsed.value * 7 * 24 * 60 * 60 * 1000;
+    case "months":
+      // Approximate: 30 days per month
+      return parsed.value * 30 * 24 * 60 * 60 * 1000;
+    default:
+      throw new Error("unknown resolution type");
+  }
+}
