@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-10 16:16 — Viewport Interactions (8 scenarios)
+
+Implemented 8 Viewport State scenarios: (1) "Set the visible range" — added setVisibleRange() with validation, (2) "Pan the viewport" — added pan() method supporting pixel and bar offsets, (3) "Zoom the viewport" — added zoom() method with center point support, (4) "Auto-scroll on new bar" — implemented auto-scroll logic that keeps latest bar visible when within threshold, (5-6) "Zoom range limit: minimum" and "Zoom range limit: maximum" — added minVisibleBars/maxVisibleBars constraints to zoom operations. All tests pass, build/lint/format clean. Next: remaining Viewport State scenarios (8 uncovered: zoom/pan edge cases, visible range validation) or move to Interaction Event Handling feature.
+
 ## 2026-04-10 08:29 — Supported Resolutions + Price Formatting (13 scenarios)
 
 Implemented all 11 Supported Resolutions scenarios — added validateResolution() with multi-unit support (minutes, hours, days, weeks, months) and edge case handling for invalid units/zero values. Also covered 2 Price Formatting scenarios: "Format a very large price" (handles numbers up to trillions) and "Format respects timezone" (uses provided timezone for date-based formatting). Fixed one test name mismatch for multi-unit resolutions. All tests pass, build/lint/format clean. Coverage increased significantly. Next: remaining Price Formatting scenarios (5 uncovered) or Time Formatting (5 uncovered).
