@@ -534,6 +534,8 @@ export class ChartState {
   private symbolRequestCounter = 0;
   private minRange: number | undefined;
   private maxRange: number | undefined;
+  private autoScrollEnabled: boolean = false;
+  private latestBarTime: number | undefined;
 
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
@@ -934,12 +936,16 @@ export class ChartState {
 
   /**
    * Pan the viewport by a delta value
+   * Disables auto-scroll when user pans
    * Emits a "viewport:changed" event with the new timeRange
    */
   panViewport(delta: number): void {
     if (!this.viewportRange) {
       return;
     }
+
+    // User panning disables auto-scroll
+    this.autoScrollEnabled = false;
 
     const newFrom = this.viewportRange.from + delta;
     const newTo = this.viewportRange.to + delta;
@@ -1011,6 +1017,67 @@ export class ChartState {
           ? [this.priceRange.min, this.priceRange.max]
           : undefined,
       });
+    }
+  }
+
+  /**
+   * Enable or disable auto-scroll
+   * When re-enabled, shifts viewport to show latest bar if available
+   */
+  setAutoScrollEnabled(enabled: boolean): void {
+    const wasEnabled = this.autoScrollEnabled;
+    this.autoScrollEnabled = enabled;
+
+    // If re-enabling and we have a latest bar, shift viewport to show it
+    if (
+      enabled &&
+      !wasEnabled &&
+      this.latestBarTime !== undefined &&
+      this.viewportRange
+    ) {
+      const range = this.viewportRange.to - this.viewportRange.from;
+      const newFrom = this.latestBarTime - range;
+      const newTo = this.latestBarTime;
+      this.viewportRange = { from: newFrom, to: newTo };
+
+      if (this.eventBus) {
+        this.eventBus.emit("viewport:changed", {
+          timeRange: [newFrom, newTo],
+          priceRange: this.priceRange
+            ? [this.priceRange.min, this.priceRange.max]
+            : undefined,
+        });
+      }
+    }
+  }
+
+  /**
+   * Handle a real-time bar arrival
+   * If auto-scroll is enabled and the bar is beyond the visible range,
+   * shifts the viewport to show the new bar
+   */
+  onRealtimeBar(barTime: number): void {
+    this.latestBarTime = barTime;
+
+    if (!this.autoScrollEnabled || !this.viewportRange) {
+      return;
+    }
+
+    // Only auto-scroll if the bar is beyond the current visible range
+    if (barTime > this.viewportRange.to) {
+      const range = this.viewportRange.to - this.viewportRange.from;
+      const newFrom = barTime - range;
+      const newTo = barTime;
+      this.viewportRange = { from: newFrom, to: newTo };
+
+      if (this.eventBus) {
+        this.eventBus.emit("viewport:changed", {
+          timeRange: [newFrom, newTo],
+          priceRange: this.priceRange
+            ? [this.priceRange.min, this.priceRange.max]
+            : undefined,
+        });
+      }
     }
   }
 }

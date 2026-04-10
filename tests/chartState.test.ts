@@ -748,3 +748,94 @@ describe("Scenario: Zoom in with minimum range limit", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Auto-scroll to latest bar on new real-time data", () => {
+  it("auto_scroll_to_latest_bar_on_new_real_time_data", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Enable auto-scroll
+    chartState.setAutoScrollEnabled(true);
+
+    // Set initial visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Simulate a real-time bar arriving at time 5500 (beyond visible range)
+    chartState.onRealtimeBar(5500);
+
+    // Verify the viewport shifted to show the new bar
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+    expect(range.to).toBeGreaterThanOrEqual(5500);
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Do not auto-scroll when user has panned away", () => {
+  it("do_not_auto_scroll_when_user_has_panned_away", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Enable auto-scroll
+    chartState.setAutoScrollEnabled(true);
+
+    // Set initial visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    // User pans away (this should disable auto-scroll)
+    chartState.panViewport(-10000);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Simulate a real-time bar arriving at time 5500
+    chartState.onRealtimeBar(5500);
+
+    // Verify the viewport did NOT shift
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+    expect(range.from).toBe(-9000);
+    expect(range.to).toBe(-5000);
+
+    // Verify no viewport:changed event was emitted for auto-scroll
+    expect(viewportCallback).not.toHaveBeenCalled();
+  });
+});
+
+describe("Scenario: Re-enable auto-scroll", () => {
+  it("re_enable_auto_scroll", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Enable auto-scroll
+    chartState.setAutoScrollEnabled(true);
+
+    // Set initial visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    // User pans away (disables auto-scroll)
+    chartState.panViewport(-10000);
+
+    // Simulate a real-time bar arriving (should NOT auto-scroll)
+    chartState.onRealtimeBar(5500);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Re-enable auto-scroll (should shift to show latest bar)
+    chartState.setAutoScrollEnabled(true);
+
+    // Verify the viewport shifted to show the latest bar
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+    expect(range.to).toBeGreaterThanOrEqual(5500);
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
