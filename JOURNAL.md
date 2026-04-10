@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-10 08:29 — Supported Resolutions + Price Formatting (13 scenarios)
+
+Implemented all 11 Supported Resolutions scenarios — added validateResolution() with multi-unit support (minutes, hours, days, weeks, months) and edge case handling for invalid units/zero values. Also covered 2 Price Formatting scenarios: "Format a very large price" (handles numbers up to trillions) and "Format respects timezone" (uses provided timezone for date-based formatting). Fixed one test name mismatch for multi-unit resolutions. All tests pass, build/lint/format clean. Coverage increased significantly. Next: remaining Price Formatting scenarios (5 uncovered) or Time Formatting (5 uncovered).
+
 ## 2026-04-10 00:17 — Series Management start (1 scenario)
 
 Implemented the "Add a series" scenario from the Series Management feature — added addSeries() method to ChartState that validates series config, assigns a unique series ID, and emits a series:added event. Test passes, build/lint/format clean. Coverage now 75/153 (49%). Next: continue with remaining Series Management scenarios (13 uncovered: Remove a series, Update series config, Reorder series, etc.).
