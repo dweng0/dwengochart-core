@@ -191,7 +191,7 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format a price with currency symbol
 - [x] Format a price with euro currency
 - [x] Format zero price
-- [ ] UNCOVERED: Format a very large price
+- [x] Format a very large price
 
 ## Feature: Time Formatting
 
@@ -199,12 +199,12 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format a timestamp at intraday resolution
 - [x] Format a timestamp at weekly resolution
 - [x] Format a timestamp at monthly resolution
-- [ ] UNCOVERED: Format respects timezone
+- [x] Format respects timezone
 
 ---
-**95/153 scenarios covered.**
+**97/153 scenarios covered.**
 
-58 scenario(s) need tests:
+56 scenario(s) need tests:
 - Set the visible range
 - Pan the viewport
 - Zoom the viewport
@@ -261,5 +261,3 @@ Checked 153 scenario(s) across 5 test file(s).
 - Adapter handles concurrent getBars requests
 - Adapter teardown cleans up all resources
 - Adapter normalizes synchronous datafeed callbacks to async
-- Format a very large price
-- Format respects timezone
