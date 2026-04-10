@@ -9,6 +9,13 @@ interface ChartEvents {
   "series:data": { seriesId: string; bars: any[] };
   "chart:loading": boolean;
   "chart:error": string | null;
+  "series:add": { id: string; type: string; options?: Record<string, unknown> };
+  "series:remove": { id: string };
+  "series:update": { id: string; options: Record<string, unknown> };
+  "series:show": { id: string };
+  "series:hide": { id: string };
+  "series:type": { id: string; type: string };
+  "series:order": { ids: string[] };
 }
 
 describe("Scenario: Set the active symbol", () => {
@@ -271,5 +278,32 @@ describe("Scenario: Concurrent symbol changes discard stale resolution", () => {
     // Only one symbol:resolved event should have been emitted (for GOOG)
     expect(symbolCallback).toHaveBeenCalledTimes(1);
     expect(symbolCallback.mock.calls[0][0].symbol.name).toBe("GOOG");
+  });
+});
+
+describe("Scenario: Add a series", () => {
+  it("add_a_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const addCallback = vi.fn();
+    eventBus.on("series:add", addCallback);
+
+    // Add a series
+    chartState.addSeries("candles", "candlestick", {});
+
+    // Verify the series is tracked (via serialize)
+    const serialized = chartState.serialize();
+    expect(serialized.series).toHaveLength(1);
+    expect(serialized.series[0].id).toBe("candles");
+    expect(serialized.series[0].type).toBe("candlestick");
+
+    // Verify the event was emitted
+    expect(addCallback).toHaveBeenCalledTimes(1);
+    expect(addCallback.mock.calls[0][0]).toEqual({
+      id: "candles",
+      type: "candlestick",
+      options: {},
+    });
   });
 });

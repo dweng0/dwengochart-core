@@ -457,6 +457,13 @@ export interface ChartStateEvents {
   "series:data": { seriesId: string; bars: Bar[] };
   "chart:loading": boolean;
   "chart:error": string | null;
+  "series:add": { id: string; type: string; options?: Record<string, unknown> };
+  "series:remove": { id: string };
+  "series:update": { id: string; options: Record<string, unknown> };
+  "series:show": { id: string };
+  "series:hide": { id: string };
+  "series:type": { id: string; type: string };
+  "series:order": { ids: string[] };
 }
 
 /**
@@ -496,12 +503,24 @@ export interface ChartStateOptions {
  * It tracks the current symbol, resolution, and viewport state,
  * and emits events to keep all components synchronized.
  */
+/**
+ * Supported series types
+ */
+const SUPPORTED_SERIES_TYPES = [
+  "candlestick",
+  "line",
+  "area",
+  "ohlc",
+  "volume",
+];
+
 export class ChartState {
   private symbol: SymbolInfo | undefined;
   private resolution: string | undefined;
   private eventBus: EventBus<ChartStateEvents> | undefined;
   private barStore: BarSeriesStore | undefined;
   private series: Map<string, SeriesInfo> = new Map();
+  private seriesBarStores: Map<string, BarSeriesStore> = new Map();
   private viewportRange: { from: number; to: number } | undefined;
   private priceRange: { min: number; max: number } | undefined;
   private priceScale: "linear" | "logarithmic" | "percentage" = "linear";
@@ -511,6 +530,38 @@ export class ChartState {
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
     this.barStore = options?.barStore;
+  }
+
+  /**
+   * Add a series to the chart
+   * Emits a "series:add" event with the series info
+   */
+  addSeries(id: string, type: string, options?: Record<string, unknown>): void {
+    // Validate series type
+    if (!SUPPORTED_SERIES_TYPES.includes(type)) {
+      throw new Error(
+        `Unsupported series type: ${type}. Supported types: ${SUPPORTED_SERIES_TYPES.join(", ")}`,
+      );
+    }
+
+    // Check for duplicate id
+    if (this.series.has(id)) {
+      throw new Error(`Series with id "${id}" already exists`);
+    }
+
+    const seriesInfo: SeriesInfo = {
+      id,
+      type,
+      options,
+      visible: true,
+    };
+
+    this.series.set(id, seriesInfo);
+    this.seriesBarStores.set(id, new SimpleBarStore());
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:add", { id, type, options });
+    }
   }
 
   /**
