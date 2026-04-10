@@ -452,7 +452,13 @@ export function validateSymbolInfo(
  */
 export interface ChartStateEvents {
   "symbol:resolved": { symbol: SymbolInfo };
-  "viewport:changed": { range?: { from: number; to: number } };
+  "viewport:changed": {
+    range?: { from: number; to: number };
+    timeRange?: [number, number];
+    priceRange?: [number, number];
+    priceScale?: "linear" | "logarithmic" | "percentage";
+    basePrice?: number;
+  };
   "state:reset": undefined;
   "series:data": { seriesId: string; bars: Bar[] };
   "chart:loading": boolean;
@@ -900,6 +906,27 @@ export class ChartState {
 
     if (this.eventBus) {
       this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
+    }
+  }
+
+  /**
+   * Set the visible range of the viewport
+   * Emits a "viewport:changed" event with timeRange and priceRange
+   */
+  setVisibleRange(
+    timeRange: [number, number],
+    priceRange?: [number, number],
+  ): void {
+    this.viewportRange = { from: timeRange[0], to: timeRange[1] };
+    if (priceRange) {
+      this.priceRange = { min: priceRange[0], max: priceRange[1] };
+    }
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange,
+        priceRange,
+      });
     }
   }
 }

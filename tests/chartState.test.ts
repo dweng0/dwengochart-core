@@ -4,7 +4,13 @@ import { ChartState, SymbolInfo, SimpleBarStore, Bar } from "../src/index";
 
 interface ChartEvents {
   "symbol:resolved": { symbol: SymbolInfo };
-  "viewport:changed": { range?: { from: number; to: number } };
+  "viewport:changed": {
+    range?: { from: number; to: number };
+    timeRange?: [number, number];
+    priceRange?: [number, number];
+    priceScale?: "linear" | "logarithmic" | "percentage";
+    basePrice?: number;
+  };
   "state:reset": undefined;
   "series:data": { seriesId: string; bars: any[] };
   "chart:loading": boolean;
@@ -613,5 +619,30 @@ describe("Scenario: Emit series:data when a real-time bar updates a series", () 
     expect(dataCallback.mock.calls[0][0].seriesId).toBe("candles");
     expect(dataCallback.mock.calls[0][0].bars).toHaveLength(3);
     expect(dataCallback.mock.calls[0][0].bars[2]).toEqual(realtimeBar);
+  });
+});
+
+describe("Scenario: Set the visible range", () => {
+  it("set_the_visible_range", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Set the visible range
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    // Verify the viewport was set (via serialize)
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 1000, to: 5000 });
+    expect(serialized.viewport.priceRange).toEqual({ min: 50, max: 150 });
+
+    // Verify the event was emitted with the correct payload
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+    expect(viewportCallback.mock.calls[0][0]).toEqual({
+      timeRange: [1000, 5000],
+      priceRange: [50, 150],
+    });
   });
 });
