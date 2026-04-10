@@ -1,6 +1,6 @@
 # BDD Status
 
-Checked 153 scenario(s) across 4 test file(s).
+Checked 153 scenario(s) across 5 test file(s).
 
 
 ## Feature: Bar Data Model
@@ -171,17 +171,17 @@ Checked 153 scenario(s) across 4 test file(s).
 
 ## Feature: Supported Resolutions
 
-- [ ] UNCOVERED: Parse standard intraday resolutions
-- [ ] UNCOVERED: Parse daily resolution
-- [ ] UNCOVERED: Parse weekly resolution
-- [ ] UNCOVERED: Parse monthly resolution
-- [ ] UNCOVERED: Reject invalid resolution string
+- [x] Parse standard intraday resolutions
+- [x] Parse daily resolution
+- [x] Parse weekly resolution
+- [x] Parse monthly resolution
+- [x] Reject invalid resolution string
 - [x] Reject negative resolution
 - [ ] UNCOVERED: Parse multi-unit resolutions
-- [ ] UNCOVERED: Parse seconds resolutions
-- [ ] UNCOVERED: Resolution equivalence
-- [ ] UNCOVERED: Convert resolution to milliseconds
-- [ ] UNCOVERED: Convert intraday resolution to milliseconds
+- [x] Parse seconds resolutions
+- [x] Resolution equivalence
+- [x] Convert resolution to milliseconds
+- [x] Convert intraday resolution to milliseconds
 
 ## Feature: Price Formatting
 
@@ -202,9 +202,9 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**85/153 scenarios covered.**
+**94/153 scenarios covered.**
 
-68 scenario(s) need tests:
+59 scenario(s) need tests:
 - Set the visible range
 - Pan the viewport
 - Zoom the viewport
@@ -261,15 +261,6 @@ Checked 153 scenario(s) across 4 test file(s).
 - Adapter handles concurrent getBars requests
 - Adapter teardown cleans up all resources
 - Adapter normalizes synchronous datafeed callbacks to async
-- Parse standard intraday resolutions
-- Parse daily resolution
-- Parse weekly resolution
-- Parse monthly resolution
-- Reject invalid resolution string
 - Parse multi-unit resolutions
-- Parse seconds resolutions
-- Resolution equivalence
-- Convert resolution to milliseconds
-- Convert intraday resolution to milliseconds
 - Format a very large price
 - Format respects timezone

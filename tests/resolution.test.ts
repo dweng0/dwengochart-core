@@ -51,7 +51,7 @@ describe("Scenario: Reject negative resolution", () => {
 });
 
 describe("Scenario: Parse multi-unit resolutions", () => {
-  it("parse_multi_unit_resolutions", () => {
+  it("parse_multiunit_resolutions", () => {
     const result2D = parseResolution("2D");
     expect(result2D.type).toBe("days");
     expect(result2D.value).toBe(2);
