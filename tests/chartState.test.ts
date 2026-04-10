@@ -669,3 +669,28 @@ describe("Scenario: Pan the viewport", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Zoom the viewport", () => {
+  it("zoom_the_viewport", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set initial visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Zoom by factor 0.5 anchored at 3000
+    // Original range width: 4000, new width: 2000
+    // Anchor at 3000, so new range should be [2000, 4000]
+    chartState.zoomViewport(0.5, 3000);
+
+    // Verify the viewport was zoomed (via serialize)
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 2000, to: 4000 });
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});

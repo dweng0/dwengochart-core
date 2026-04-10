@@ -952,6 +952,42 @@ export class ChartState {
       });
     }
   }
+
+  /**
+   * Zoom the viewport by a factor anchored at a specific point
+   * Factor < 1 zooms in (shrinks range), factor > 1 zooms out (expands range)
+   * Emits a "viewport:changed" event with the new timeRange
+   */
+  zoomViewport(factor: number, anchor: number): void {
+    if (!this.viewportRange) {
+      return;
+    }
+
+    const from = this.viewportRange.from;
+    const to = this.viewportRange.to;
+
+    // Calculate distances from anchor to edges
+    const anchorToLeft = anchor - from;
+    const anchorToRight = to - anchor;
+
+    // Apply zoom factor to each side
+    const newAnchorToLeft = anchorToLeft * factor;
+    const newAnchorToRight = anchorToRight * factor;
+
+    const newFrom = anchor - newAnchorToLeft;
+    const newTo = anchor + newAnchorToRight;
+
+    this.viewportRange = { from: newFrom, to: newTo };
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange: [newFrom, newTo],
+        priceRange: this.priceRange
+          ? [this.priceRange.min, this.priceRange.max]
+          : undefined,
+      });
+    }
+  }
 }
 
 /**
