@@ -1,6 +1,8 @@
 # Journal
 
-## 2026-04-09 16:27 — Chart State Management complete (3 scenarios)
+## 2026-04-10 00:17 — Series Management start (1 scenario)
+
+Implemented the "Add a series" scenario from the Series Management feature — added addSeries() method to ChartState that validates series config, assigns a unique series ID, and emits a series:added event. Test passes, build/lint/format clean. Coverage now 75/153 (49%). Next: continue with remaining Series Management scenarios (13 uncovered: Remove a series, Update series config, Reorder series, etc.).
 
 Covered all remaining Chart State Management scenarios: (1) "Serialize chart state" — added serialize() method returning symbol, resolution, series list, and viewport state; (2) "Deserialize chart state" — added deserialize() method that restores all properties and emits symbol:resolved and viewport:changed events; (3) "Concurrent symbol changes discard stale resolution" — implemented beginSymbolResolution/completeSymbolResolution pattern with request ID tracking to discard stale async resolutions. All 57 tests pass, build/lint/format clean. Chart State Management feature is now 100% complete (7/7 scenarios). Coverage now 74/153 (48%). Next session should tackle Series Management feature (14 scenarios, highest priority uncovered feature) starting with "Add a series".
 
