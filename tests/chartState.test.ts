@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { EventBus } from "@yatamazuki/typed-eventbus";
-import { ChartState, SymbolInfo, SimpleBarStore } from "../src/index";
+import { ChartState, SymbolInfo, SimpleBarStore, Bar } from "../src/index";
 
 interface ChartEvents {
   "symbol:resolved": { symbol: SymbolInfo };
@@ -305,5 +305,313 @@ describe("Scenario: Add a series", () => {
       type: "candlestick",
       options: {},
     });
+  });
+});
+
+describe("Scenario: Add multiple series", () => {
+  it("add_multiple_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const addCallback = vi.fn();
+    eventBus.on("series:add", addCallback);
+
+    // Add multiple series
+    chartState.addSeries("candles", "candlestick");
+    chartState.addSeries("ma20", "line", { color: "orange" });
+
+    // Verify both series are tracked
+    const serialized = chartState.serialize();
+    expect(serialized.series).toHaveLength(2);
+    expect(serialized.series[0].id).toBe("candles");
+    expect(serialized.series[0].type).toBe("candlestick");
+    expect(serialized.series[1].id).toBe("ma20");
+    expect(serialized.series[1].type).toBe("line");
+
+    // Verify events were emitted for each
+    expect(addCallback).toHaveBeenCalledTimes(2);
+    expect(addCallback.mock.calls[0][0]).toEqual({
+      id: "candles",
+      type: "candlestick",
+      options: undefined,
+    });
+    expect(addCallback.mock.calls[1][0]).toEqual({
+      id: "ma20",
+      type: "line",
+      options: { color: "orange" },
+    });
+  });
+});
+
+describe("Scenario: Remove a series", () => {
+  it("remove_a_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series first
+    chartState.addSeries("candles", "candlestick");
+
+    const removeCallback = vi.fn();
+    eventBus.on("series:remove", removeCallback);
+
+    // Remove the series
+    chartState.removeSeries("candles");
+
+    // Verify the series is no longer tracked
+    const serialized = chartState.serialize();
+    expect(serialized.series).toHaveLength(0);
+
+    // Verify the event was emitted
+    expect(removeCallback).toHaveBeenCalledTimes(1);
+    expect(removeCallback.mock.calls[0][0]).toEqual({ id: "candles" });
+  });
+});
+
+describe("Scenario: Remove a nonexistent series is a no-op", () => {
+  it("remove_a_nonexistent_series_is_a_no_op", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const removeCallback = vi.fn();
+    eventBus.on("series:remove", removeCallback);
+
+    // Try to remove a series that doesn't exist
+    chartState.removeSeries("nonexistent");
+
+    // Verify no error was thrown (test would fail if exception occurred)
+    // Verify no event was emitted
+    expect(removeCallback).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe("Scenario: Update series options", () => {
+  it("update_series_options", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series with initial options
+    chartState.addSeries("line1", "line", { color: "blue" });
+
+    const updateCallback = vi.fn();
+    eventBus.on("series:update", updateCallback);
+
+    // Update the options
+    chartState.updateSeriesOptions("line1", { color: "red" });
+
+    // Verify the options were updated
+    const serialized = chartState.serialize();
+    expect(serialized.series[0].options).toEqual({ color: "red" });
+
+    // Verify the event was emitted
+    expect(updateCallback).toHaveBeenCalledTimes(1);
+    expect(updateCallback.mock.calls[0][0]).toEqual({
+      id: "line1",
+      options: { color: "red" },
+    });
+  });
+});
+
+describe("Scenario: Show a hidden series", () => {
+  it("show_a_hidden_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series and hide it
+    chartState.addSeries("s1", "line");
+    chartState.hideSeries("s1");
+
+    const showCallback = vi.fn();
+    eventBus.on("series:show", showCallback);
+
+    // Show the series
+    chartState.showSeries("s1");
+
+    // Verify the event was emitted
+    expect(showCallback).toHaveBeenCalledTimes(1);
+    expect(showCallback.mock.calls[0][0]).toEqual({ id: "s1" });
+  });
+});
+
+describe("Scenario: Hide a visible series", () => {
+  it("hide_a_visible_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series (visible by default)
+    chartState.addSeries("s1", "line");
+
+    const hideCallback = vi.fn();
+    eventBus.on("series:hide", hideCallback);
+
+    // Hide the series
+    chartState.hideSeries("s1");
+
+    // Verify the event was emitted
+    expect(hideCallback).toHaveBeenCalledTimes(1);
+    expect(hideCallback.mock.calls[0][0]).toEqual({ id: "s1" });
+  });
+});
+
+describe("Scenario: Change series type", () => {
+  it("change_series_type", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series with type "line"
+    chartState.addSeries("s1", "line");
+
+    const typeCallback = vi.fn();
+    eventBus.on("series:type", typeCallback);
+
+    // Change the type to "area"
+    chartState.changeSeriesType("s1", "area");
+
+    // Verify the type was changed
+    const serialized = chartState.serialize();
+    expect(serialized.series[0].type).toBe("area");
+
+    // Verify the event was emitted
+    expect(typeCallback).toHaveBeenCalledTimes(1);
+    expect(typeCallback.mock.calls[0][0]).toEqual({ id: "s1", type: "area" });
+  });
+});
+
+describe("Scenario: Change series type to same value is a no-op", () => {
+  it("change_series_type_to_same_value_is_a_no_op", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series with type "candlestick"
+    chartState.addSeries("s1", "candlestick");
+
+    const typeCallback = vi.fn();
+    eventBus.on("series:type", typeCallback);
+
+    // Try to change to the same type
+    chartState.changeSeriesType("s1", "candlestick");
+
+    // Verify no event was emitted
+    expect(typeCallback).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe("Scenario: Reorder series", () => {
+  it("reorder_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add series in order s1, s2, s3
+    chartState.addSeries("s1", "line");
+    chartState.addSeries("s2", "line");
+    chartState.addSeries("s3", "line");
+
+    const orderCallback = vi.fn();
+    eventBus.on("series:order", orderCallback);
+
+    // Reorder to s3, s1, s2
+    chartState.reorderSeries(["s3", "s1", "s2"]);
+
+    // Verify the order was changed
+    const serialized = chartState.serialize();
+    expect(serialized.series[0].id).toBe("s3");
+    expect(serialized.series[1].id).toBe("s1");
+    expect(serialized.series[2].id).toBe("s2");
+
+    // Verify the event was emitted
+    expect(orderCallback).toHaveBeenCalledTimes(1);
+    expect(orderCallback.mock.calls[0][0]).toEqual({ ids: ["s3", "s1", "s2"] });
+  });
+});
+
+describe("Scenario: Emit series:data when bars are loaded for a series", () => {
+  it("emit_seriesdata_when_bars_are_loaded_for_a_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series
+    chartState.addSeries("candles", "candlestick");
+
+    const dataCallback = vi.fn();
+    eventBus.on("series:data", dataCallback);
+
+    // Load bars for the series
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 107, low: 97, close: 105 },
+    ];
+    chartState.loadSeriesBars("candles", bars);
+
+    // Verify the event was emitted with the bars
+    expect(dataCallback).toHaveBeenCalledTimes(1);
+    expect(dataCallback.mock.calls[0][0]).toEqual({
+      seriesId: "candles",
+      bars: bars,
+    });
+  });
+});
+
+describe("Scenario: Each series has its own bar store", () => {
+  it("each_series_has_its_own_bar_store", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add two series
+    chartState.addSeries("candles", "candlestick");
+    chartState.addSeries("ma20", "line");
+
+    const dataCallback = vi.fn();
+    eventBus.on("series:data", dataCallback);
+
+    // Load bars for "candles" only
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+    ];
+    chartState.loadSeriesBars("candles", bars);
+
+    // Verify only one event was emitted (for "candles")
+    expect(dataCallback).toHaveBeenCalledTimes(1);
+    expect(dataCallback.mock.calls[0][0].seriesId).toBe("candles");
+
+    // Verify "ma20" bar store is empty
+    const ma20Store = chartState.getSeriesBarStore("ma20");
+    expect(ma20Store?.getBarCount()).toBe(0);
+
+    // Verify "candles" bar store has the bars
+    const candlesStore = chartState.getSeriesBarStore("candles");
+    expect(candlesStore?.getBarCount()).toBe(1);
+  });
+});
+
+describe("Scenario: Emit series:data when a real-time bar updates a series", () => {
+  it("emit_series_data_when_a_real_time_bar_updates_a_series", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Add a series and load initial bars
+    chartState.addSeries("candles", "candlestick");
+    const initialBars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 107, low: 97, close: 105 },
+    ];
+    chartState.loadSeriesBars("candles", initialBars);
+
+    const dataCallback = vi.fn();
+    eventBus.on("series:data", dataCallback);
+
+    // Add a real-time bar
+    const realtimeBar: Bar = {
+      time: 3000,
+      open: 105,
+      high: 110,
+      low: 100,
+      close: 108,
+    };
+    chartState.addSeriesBar("candles", realtimeBar);
+
+    // Verify the event was emitted with all bars (including the new one)
+    expect(dataCallback).toHaveBeenCalledTimes(1);
+    expect(dataCallback.mock.calls[0][0].seriesId).toBe("candles");
+    expect(dataCallback.mock.calls[0][0].bars).toHaveLength(3);
+    expect(dataCallback.mock.calls[0][0].bars[2]).toEqual(realtimeBar);
   });
 });

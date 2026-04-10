@@ -75,21 +75,21 @@ Checked 153 scenario(s) across 4 test file(s).
 
 ## Feature: Series Management
 
-- [ ] UNCOVERED: Add a series
-- [ ] UNCOVERED: Add multiple series
-- [ ] UNCOVERED: Remove a series
-- [ ] UNCOVERED: Update series options
-- [ ] UNCOVERED: Show a hidden series
-- [ ] UNCOVERED: Hide a visible series
+- [x] Add a series
+- [x] Add multiple series
+- [x] Remove a series
+- [x] Update series options
+- [x] Show a hidden series
+- [x] Hide a visible series
 - [x] Change series type
 - [x] Change series type to same value is a no-op
-- [ ] UNCOVERED: Reorder series
+- [x] Reorder series
 - [x] Set an invalid series type
 - [x] Add a series with duplicate id
-- [ ] UNCOVERED: Remove a nonexistent series is a no-op
-- [ ] UNCOVERED: Emit series:data when bars are loaded for a series
-- [ ] UNCOVERED: Emit series:data when a real-time bar updates a series
-- [ ] UNCOVERED: Each series has its own bar store
+- [x] Remove a nonexistent series is a no-op
+- [x] Emit series:data when bars are loaded for a series
+- [x] Emit series:data when a real-time bar updates a series
+- [x] Each series has its own bar store
 - [x] Clear series data on symbol change
 
 ## Feature: Viewport State
@@ -202,20 +202,9 @@ Checked 153 scenario(s) across 4 test file(s).
 - [ ] UNCOVERED: Format respects timezone
 
 ---
-**74/153 scenarios covered.**
+**85/153 scenarios covered.**
 
-79 scenario(s) need tests:
-- Add a series
-- Add multiple series
-- Remove a series
-- Update series options
-- Show a hidden series
-- Hide a visible series
-- Reorder series
-- Remove a nonexistent series is a no-op
-- Emit series:data when bars are loaded for a series
-- Emit series:data when a real-time bar updates a series
-- Each series has its own bar store
+68 scenario(s) need tests:
 - Set the visible range
 - Pan the viewport
 - Zoom the viewport

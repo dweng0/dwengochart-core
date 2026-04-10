@@ -565,6 +565,174 @@ export class ChartState {
   }
 
   /**
+   * Remove a series from the chart
+   * Emits a "series:remove" event with the series id
+   * If the series doesn't exist, this is a no-op
+   */
+  removeSeries(id: string): void {
+    // No-op if series doesn't exist
+    if (!this.series.has(id)) {
+      return;
+    }
+
+    this.series.delete(id);
+    this.seriesBarStores.delete(id);
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:remove", { id });
+    }
+  }
+
+  /**
+   * Update series options
+   * Emits a "series:update" event with the new options
+   */
+  updateSeriesOptions(id: string, options: Record<string, unknown>): void {
+    const seriesInfo = this.series.get(id);
+    if (!seriesInfo) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    seriesInfo.options = options;
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:update", { id, options });
+    }
+  }
+
+  /**
+   * Show a hidden series
+   * Emits a "series:show" event
+   */
+  showSeries(id: string): void {
+    const seriesInfo = this.series.get(id);
+    if (!seriesInfo) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    seriesInfo.visible = true;
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:show", { id });
+    }
+  }
+
+  /**
+   * Hide a visible series
+   * Emits a "series:hide" event
+   */
+  hideSeries(id: string): void {
+    const seriesInfo = this.series.get(id);
+    if (!seriesInfo) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    seriesInfo.visible = false;
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:hide", { id });
+    }
+  }
+
+  /**
+   * Change the type of a series
+   * Emits a "series:type" event with the new type
+   * If the type is the same, no event is emitted (no-op)
+   */
+  changeSeriesType(id: string, type: string): void {
+    const seriesInfo = this.series.get(id);
+    if (!seriesInfo) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    // Validate series type
+    if (!SUPPORTED_SERIES_TYPES.includes(type)) {
+      throw new Error(
+        `Unsupported series type: ${type}. Supported types: ${SUPPORTED_SERIES_TYPES.join(", ")}`,
+      );
+    }
+
+    // No-op if type is the same
+    if (seriesInfo.type === type) {
+      return;
+    }
+
+    seriesInfo.type = type;
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:type", { id, type });
+    }
+  }
+
+  /**
+   * Reorder series
+   * Emits a "series:order" event with the new order
+   */
+  reorderSeries(ids: string[]): void {
+    // Validate that all ids exist
+    for (const id of ids) {
+      if (!this.series.has(id)) {
+        throw new Error(`Series "${id}" not found`);
+      }
+    }
+
+    // Rebuild the series map in the new order
+    const newSeries = new Map<string, SeriesInfo>();
+    for (const id of ids) {
+      const seriesInfo = this.series.get(id)!;
+      newSeries.set(id, seriesInfo);
+    }
+    this.series = newSeries;
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:order", { ids });
+    }
+  }
+
+  /**
+   * Load bars into a series bar store
+   * Emits a "series:data" event with the bars
+   */
+  loadSeriesBars(id: string, bars: Bar[]): void {
+    const barStore = this.seriesBarStores.get(id);
+    if (!barStore) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    barStore.addBars(bars);
+
+    if (this.eventBus) {
+      this.eventBus.emit("series:data", { seriesId: id, bars });
+    }
+  }
+
+  /**
+   * Add a real-time bar to a series
+   * Emits a "series:data" event with all bars in the store
+   */
+  addSeriesBar(id: string, bar: Bar): void {
+    const barStore = this.seriesBarStores.get(id);
+    if (!barStore) {
+      throw new Error(`Series "${id}" not found`);
+    }
+
+    barStore.addBars([bar]);
+
+    // Emit all bars in the store
+    const allBars = barStore.getBars(0, Number.MAX_SAFE_INTEGER);
+    if (this.eventBus) {
+      this.eventBus.emit("series:data", { seriesId: id, bars: allBars });
+    }
+  }
+
+  /**
+   * Get the bar store for a series
+   */
+  getSeriesBarStore(id: string): BarSeriesStore | undefined {
+    return this.seriesBarStores.get(id);
+  }
+
+  /**
    * Set the active symbol and resolution
    * Emits a "symbol:resolved" event with the symbol info
    */
