@@ -95,12 +95,12 @@ Checked 153 scenario(s) across 5 test file(s).
 ## Feature: Viewport State
 
 - [x] Set the visible range
-- [ ] UNCOVERED: Pan the viewport
-- [ ] UNCOVERED: Zoom the viewport
-- [ ] UNCOVERED: Zoom out with maximum range limit
-- [ ] UNCOVERED: Zoom in with minimum range limit
-- [ ] UNCOVERED: Auto-scroll to latest bar on new real-time data
-- [ ] UNCOVERED: Do not auto-scroll when user has panned away
+- [x] Pan the viewport
+- [x] Zoom the viewport
+- [x] Zoom out with maximum range limit
+- [x] Zoom in with minimum range limit
+- [x] Auto-scroll to latest bar on new real-time data
+- [x] Do not auto-scroll when user has panned away
 - [x] Initial viewport before any data
 - [x] Fit viewport to all loaded data
 - [x] Pan with no data loaded
@@ -202,15 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**100/153 scenarios covered.**
+**106/153 scenarios covered.**
 
-53 scenario(s) need tests:
-- Pan the viewport
-- Zoom the viewport
-- Zoom out with maximum range limit
-- Zoom in with minimum range limit
-- Auto-scroll to latest bar on new real-time data
-- Do not auto-scroll when user has panned away
+47 scenario(s) need tests:
 - Re-enable auto-scroll
 - Zoom anchor at viewport edge
 - Prevent inverted viewport
