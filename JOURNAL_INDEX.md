@@ -10,3 +10,4 @@
 | 2026-04-10 | 00:17 | 85/153 | 2026-04-10 00:20: implement 'Add a series' scenario |
 | 2026-04-10 | 08:29 | 97/153 | 2026-04-10 08:36: implement 'Format respects timezone' scenario;2026-04-10 08:34: implement 'Format a very large price' scenario 2026-04-10 08:33: fix test name for multi-unit resolutions scenario;2026-04-10 08:32: implement Supported Resolutions (11 scenarios) |
 | 2026-04-10 | 16:16 | 106/153 | implement auto-scroll scenarios (3);implement zoom range limit scenarios (2) implement 'Zoom the viewport' scenario;implement 'Pan the viewport' scenario implement 'Set the visible range' scenario |
+| 2026-04-11 | 00:16 | 106/153 | no changes |
