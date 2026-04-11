@@ -104,10 +104,10 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Initial viewport before any data
 - [x] Fit viewport to all loaded data
 - [x] Pan with no data loaded
-- [ ] UNCOVERED: Re-enable auto-scroll
-- [ ] UNCOVERED: Zoom anchor at viewport edge
-- [ ] UNCOVERED: Prevent inverted viewport
-- [ ] UNCOVERED: Auto-calculate price range from visible bars
+- [x] Re-enable auto-scroll
+- [x] Zoom anchor at viewport edge
+- [x] Prevent inverted viewport
+- [x] Auto-calculate price range from visible bars
 - [x] Set logarithmic price scale
 - [x] Set percentage price scale
 
@@ -202,13 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**106/153 scenarios covered.**
+**110/153 scenarios covered.**
 
-47 scenario(s) need tests:
-- Re-enable auto-scroll
-- Zoom anchor at viewport edge
-- Prevent inverted viewport
-- Auto-calculate price range from visible bars
+43 scenario(s) need tests:
 - Handle interaction:pan event
 - Handle interaction:zoom event
 - Handle interaction:fit event

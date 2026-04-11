@@ -695,6 +695,87 @@ describe("Scenario: Zoom the viewport", () => {
   });
 });
 
+describe("Scenario: Zoom anchor at viewport edge", () => {
+  it("zoom_anchor_at_viewport_edge", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set initial visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Zoom by factor 0.5 anchored at 1000 (left edge)
+    chartState.zoomViewport(0.5, 1000);
+
+    // Verify the left side remains at 1000 and right side shrinks toward it
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 1000, to: 3000 });
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Prevent inverted viewport", () => {
+  it("prevent_inverted_viewport", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    // Set initial valid range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Try to set an inverted range (from > to)
+    chartState.setVisibleRange([5000, 1000], [50, 150]);
+
+    // Verify the previous valid range is preserved
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 1000, to: 5000 });
+
+    // Verify no viewport:changed event was emitted for the invalid range
+    expect(viewportCallback).not.toHaveBeenCalled();
+  });
+});
+
+describe("Scenario: Auto-calculate price range from visible bars", () => {
+  it("autocalculate_price_range_from_visible_bars", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    // Set visible range [1000, 5000]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    // Add bars with prices ranging from 95 to 110
+    barStore.addBars([
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 108, low: 98, close: 105 },
+      { time: 3000, open: 105, high: 110, low: 100, close: 108 },
+      { time: 4000, open: 108, high: 110, low: 102, close: 106 },
+      { time: 5000, open: 106, high: 109, low: 100, close: 104 },
+    ]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Auto-calculate price range (default 10% padding)
+    chartState.autoCalculatePriceRange();
+
+    // Verify priceRange expanded slightly beyond [95, 110]
+    const serialized = chartState.serialize();
+    const priceRange = serialized.viewport.priceRange!;
+    expect(priceRange.min).toBeLessThan(95);
+    expect(priceRange.max).toBeGreaterThan(110);
+
+    // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Scenario: Zoom out with maximum range limit", () => {
   it("zoom_out_with_maximum_range_limit", () => {
     const eventBus = new EventBus<ChartEvents>();
@@ -808,7 +889,7 @@ describe("Scenario: Do not auto-scroll when user has panned away", () => {
 });
 
 describe("Scenario: Re-enable auto-scroll", () => {
-  it("re_enable_auto_scroll", () => {
+  it("reenable_autoscroll", () => {
     const eventBus = new EventBus<ChartEvents>();
     const chartState = new ChartState({ eventBus });
 
@@ -831,11 +912,20 @@ describe("Scenario: Re-enable auto-scroll", () => {
     chartState.setAutoScrollEnabled(true);
 
     // Verify the viewport shifted to show the latest bar
-    const serialized = chartState.serialize();
-    const range = serialized.viewport.range!;
+    let serialized = chartState.serialize();
+    let range = serialized.viewport.range!;
     expect(range.to).toBeGreaterThanOrEqual(5500);
 
     // Verify the event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+
+    // Verify subsequent real-time bars auto-scroll the viewport
+    viewportCallback.mockClear();
+    chartState.onRealtimeBar(6000);
+
+    serialized = chartState.serialize();
+    range = serialized.viewport.range!;
+    expect(range.to).toBeGreaterThanOrEqual(6000);
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });

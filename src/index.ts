@@ -921,6 +921,11 @@ export class ChartState {
     timeRange: [number, number],
     priceRange?: [number, number],
   ): void {
+    // Prevent inverted viewport (from must be less than to)
+    if (timeRange[0] >= timeRange[1]) {
+      return; // Reject invalid range, preserve previous valid range
+    }
+
     this.viewportRange = { from: timeRange[0], to: timeRange[1] };
     if (priceRange) {
       this.priceRange = { min: priceRange[0], max: priceRange[1] };
@@ -1078,6 +1083,50 @@ export class ChartState {
             : undefined,
         });
       }
+    }
+  }
+
+  /**
+   * Auto-calculate the price range from visible bars
+   * Expands the range slightly beyond min/max for padding
+   * Emits a "viewport:changed" event with the new priceRange
+   */
+  autoCalculatePriceRange(paddingPercent: number = 0.1): void {
+    if (!this.barStore || !this.viewportRange) {
+      return;
+    }
+
+    const bars = this.barStore.getBars(
+      this.viewportRange.from,
+      this.viewportRange.to,
+    );
+
+    if (bars.length === 0) {
+      return;
+    }
+
+    // Find min and max prices from visible bars
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+
+    for (const bar of bars) {
+      if (bar.low < minPrice) minPrice = bar.low;
+      if (bar.high > maxPrice) maxPrice = bar.high;
+    }
+
+    // Expand range for padding
+    const range = maxPrice - minPrice;
+    const padding = range * paddingPercent;
+    const newMin = minPrice - padding;
+    const newMax = maxPrice + padding;
+
+    this.priceRange = { min: newMin, max: newMax };
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange: [this.viewportRange.from, this.viewportRange.to],
+        priceRange: [newMin, newMax],
+      });
     }
   }
 }
