@@ -22,6 +22,9 @@ interface ChartEvents {
   "series:hide": { id: string };
   "series:type": { id: string; type: string };
   "series:order": { ids: string[] };
+  "interaction:pan": { deltaX: number };
+  "interaction:zoom": { delta: number; centerX: number };
+  "interaction:fit": undefined;
 }
 
 describe("Scenario: Set the active symbol", () => {
@@ -926,6 +929,34 @@ describe("Scenario: Re-enable auto-scroll", () => {
     serialized = chartState.serialize();
     range = serialized.viewport.range!;
     expect(range.to).toBeGreaterThanOrEqual(6000);
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Handle interaction:pan event", () => {
+  it("handle_interactionpan_event", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    // Assume viewport width of 800 pixels
+    const chartState = new ChartState({ eventBus, viewportWidthPx: 800 });
+
+    // Set initial visible range [1000, 5000] and priceRange [50, 150]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Emit an interaction:pan event with deltaX: 100 (panning right by 100 pixels)
+    // With viewport width 800px and range 4000 time units, scale is 5 time units/pixel
+    // deltaX 100 pixels = 500 time units
+    // Panning right (positive deltaX) should show earlier times, so viewport shifts left
+    eventBus.emit("interaction:pan", { deltaX: 100 });
+
+    // Verify the viewport was panned
+    const serialized = chartState.serialize();
+    // Original range [1000, 5000], panning right by 500 time units = [500, 4500]
+    expect(serialized.viewport.range).toEqual({ from: 500, to: 4500 });
+
+    // Verify the viewport:changed event was emitted
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });

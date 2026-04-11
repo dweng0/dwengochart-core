@@ -470,6 +470,9 @@ export interface ChartStateEvents {
   "series:hide": { id: string };
   "series:type": { id: string; type: string };
   "series:order": { ids: string[] };
+  "interaction:pan": { deltaX: number };
+  "interaction:zoom": { delta: number; centerX: number };
+  "interaction:fit": undefined;
 }
 
 /**
@@ -502,6 +505,7 @@ export interface SerializedChartState {
 export interface ChartStateOptions {
   eventBus?: EventBus<ChartStateEvents>;
   barStore?: BarSeriesStore;
+  viewportWidthPx?: number;
 }
 
 /**
@@ -536,10 +540,105 @@ export class ChartState {
   private maxRange: number | undefined;
   private autoScrollEnabled: boolean = false;
   private latestBarTime: number | undefined;
+  private viewportWidthPx: number;
 
   constructor(options?: ChartStateOptions) {
     this.eventBus = options?.eventBus;
     this.barStore = options?.barStore;
+    this.viewportWidthPx = options?.viewportWidthPx ?? 800;
+
+    // Set up interaction event listeners
+    if (this.eventBus) {
+      this.eventBus.on("interaction:pan", (payload) => {
+        this.handleInteractionPan(payload);
+      });
+      this.eventBus.on("interaction:zoom", (payload) => {
+        this.handleInteractionZoom(payload);
+      });
+      this.eventBus.on("interaction:fit", () => {
+        this.handleInteractionFit();
+      });
+    }
+  }
+
+  /**
+   * Handle interaction:pan event from renderer
+   * Converts deltaX (pixels) to time delta using current viewport scale
+   * Panning right (positive deltaX) shows earlier times, so viewport shifts left
+   */
+  private handleInteractionPan(payload: { deltaX: number }): void {
+    if (!this.viewportRange) {
+      return;
+    }
+
+    // Calculate time per pixel based on current viewport
+    const timeRange = this.viewportRange.to - this.viewportRange.from;
+    const timePerPixel = timeRange / this.viewportWidthPx;
+
+    // Convert pixel delta to time delta
+    const timeDelta = payload.deltaX * timePerPixel;
+
+    // Pan viewport (negative because panning right shows earlier times)
+    this.panViewport(-timeDelta);
+  }
+
+  /**
+   * Handle interaction:zoom event from renderer
+   * Converts delta and centerX to zoom factor and anchor time
+   */
+  private handleInteractionZoom(payload: {
+    delta: number;
+    centerX: number;
+  }): void {
+    if (!this.viewportRange) {
+      return;
+    }
+
+    // Convert centerX (pixels) to anchor time
+    const timeRange = this.viewportRange.to - this.viewportRange.from;
+    const timePerPixel = timeRange / this.viewportWidthPx;
+    const anchorTime = this.viewportRange.from + payload.centerX * timePerPixel;
+
+    // Convert delta to zoom factor (delta > 1 means zoom in)
+    const zoomFactor = 1 / payload.delta;
+
+    this.zoomViewport(zoomFactor, anchorTime);
+  }
+
+  /**
+   * Handle interaction:fit event from renderer
+   * Fits viewport to all loaded bar data
+   */
+  private handleInteractionFit(): void {
+    if (!this.barStore || this.barStore.getBarCount() === 0) {
+      return;
+    }
+
+    // Get all bars to find min/max time
+    const allBars = this.barStore.getBars(0, Number.MAX_SAFE_INTEGER);
+    if (allBars.length === 0) {
+      return;
+    }
+
+    const minTime = allBars[0].time;
+    const maxTime = allBars[allBars.length - 1].time;
+
+    // Add 5% padding on each side
+    const range = maxTime - minTime;
+    const padding = range * 0.05;
+    const newFrom = minTime - padding;
+    const newTo = maxTime + padding;
+
+    this.viewportRange = { from: newFrom, to: newTo };
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange: [newFrom, newTo],
+        priceRange: this.priceRange
+          ? [this.priceRange.min, this.priceRange.max]
+          : undefined,
+      });
+    }
   }
 
   /**
