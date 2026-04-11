@@ -1,5 +1,10 @@
 # Journal
 
+## 2026-04-11 00:16 — (auto-generated)
+
+Session commits: no commits made.
+
+
 ## 2026-04-10 16:16 — Viewport Interactions (8 scenarios)
 
 Implemented 8 Viewport State scenarios: (1) "Set the visible range" — added setVisibleRange() with validation, (2) "Pan the viewport" — added pan() method supporting pixel and bar offsets, (3) "Zoom the viewport" — added zoom() method with center point support, (4) "Auto-scroll on new bar" — implemented auto-scroll logic that keeps latest bar visible when within threshold, (5-6) "Zoom range limit: minimum" and "Zoom range limit: maximum" — added minVisibleBars/maxVisibleBars constraints to zoom operations. All tests pass, build/lint/format clean. Next: remaining Viewport State scenarios (8 uncovered: zoom/pan edge cases, visible range validation) or move to Interaction Event Handling feature.
