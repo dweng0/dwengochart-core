@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-11 16:12 — Interaction Event Handling (1 scenario)
+
+Implemented "Handle interaction:pan event" scenario from Interaction Event Handling feature. Added interaction event types to ChartStateEvents interface, viewportWidthPx option to ChartState, and event listeners in the constructor. The handleInteractionPan() method converts deltaX (pixels) to time delta using viewport scale and calls panViewport(). Also stubbed handleInteractionZoom() and handleInteractionFit() for future scenarios. Test passes, all 95 tests green, build/lint/format clean. Coverage increased from 110/153 to 113/153 (some false positives from partial matching). Next: continue with remaining Interaction Event Handling scenarios (zoom, fit, clamping, boundary, auto-scroll disable, ignore when no data).
+
 ## 2026-04-11 08:11 — Session review (no commits)
 
 No commits made this session — reviewed the codebase state and BDD coverage. Coverage stands at 75/153 (49%) with Series Management (13 uncovered), Viewport State (8 uncovered), and Price/Time Formatting as top priorities. The Viewport Interactions work from the previous session is solid with all 8 scenarios passing. Next: tackle Series Management feature starting with "Remove a series" and "Update series config" scenarios.
