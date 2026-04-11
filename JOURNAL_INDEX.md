@@ -12,3 +12,4 @@
 | 2026-04-10 | 16:16 | 106/153 | implement auto-scroll scenarios (3);implement zoom range limit scenarios (2) implement 'Zoom the viewport' scenario;implement 'Pan the viewport' scenario implement 'Set the visible range' scenario |
 | 2026-04-11 | 00:16 | 106/153 | no changes |
 | 2026-04-11 | 08:11 | 110/153 | no changes |
+| 2026-04-11 | 16:07 | 113/153 | 2026-04-11 16:12: implement 'Handle interaction:pan event' scenario |
