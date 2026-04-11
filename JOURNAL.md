@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-11 08:11 — Session review (no commits)
+
+No commits made this session — reviewed the codebase state and BDD coverage. Coverage stands at 75/153 (49%) with Series Management (13 uncovered), Viewport State (8 uncovered), and Price/Time Formatting as top priorities. The Viewport Interactions work from the previous session is solid with all 8 scenarios passing. Next: tackle Series Management feature starting with "Remove a series" and "Update series config" scenarios.
+
 ## 2026-04-11 00:16 — (auto-generated)
 
 Session commits: no commits made.
