@@ -960,3 +960,74 @@ describe("Scenario: Handle interaction:pan event", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Handle interaction:zoom event", () => {
+  it("handle_interactionzoom_event", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    // Assume viewport width of 800 pixels
+    const chartState = new ChartState({ eventBus, viewportWidthPx: 800 });
+
+    // Set initial visible range [1000, 5000] and priceRange [50, 150]
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Emit an interaction:zoom event with delta: 1.5, centerX: 400
+    // delta > 1 means zoom in (viewport shrinks)
+    // centerX 400 is the center of the 800px viewport
+    // With range [1000, 5000] (4000 time units) and 800px width, scale is 5 time units/pixel
+    // centerX 400px corresponds to time 1000 + 400*5 = 3000
+    // Zoom factor is 1/1.5 = 0.667, so new range is 4000 * 0.667 = 2667 time units
+    // Anchored at 3000, the new range should be approximately [1667, 4333]
+    eventBus.emit("interaction:zoom", { delta: 1.5, centerX: 400 });
+
+    // Verify the viewport was zoomed
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+
+    // The range should have shrunk (zoomed in)
+    expect(range.to - range.from).toBeLessThan(4000);
+    // The anchor point (3000) should still be visible in the viewport
+    expect(range.from).toBeLessThan(3000);
+    expect(range.to).toBeGreaterThan(3000);
+
+    // Verify the viewport:changed event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Handle interaction:fit event", () => {
+  it("handle_interactionfit_event", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({ eventBus, barStore });
+
+    // Add bars spanning from time 1000 to time 10000
+    barStore.addBars([
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 5000, open: 102, high: 107, low: 97, close: 105 },
+      { time: 10000, open: 105, high: 110, low: 100, close: 108 },
+    ]);
+
+    // Set an initial viewport that doesn't fit all data
+    chartState.setVisibleRange([2000, 6000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Emit an interaction:fit event
+    eventBus.emit("interaction:fit");
+
+    // Verify the viewport now fits all data with padding
+    const serialized = chartState.serialize();
+    const range = serialized.viewport.range!;
+
+    // The range should encompass all bars (1000 to 10000) with padding
+    expect(range.from).toBeLessThan(1000);
+    expect(range.to).toBeGreaterThan(10000);
+
+    // Verify the viewport:changed event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
