@@ -940,6 +940,16 @@ export class ChartState {
   }
 
   /**
+   * Set the loading state
+   * Emits a "chart:loading" event with the loading boolean
+   */
+  setLoading(loading: boolean): void {
+    if (this.eventBus) {
+      this.eventBus.emit("chart:loading", loading);
+    }
+  }
+
+  /**
    * Get the current symbol name
    */
   getSymbol(): string | undefined {

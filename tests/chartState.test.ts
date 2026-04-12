@@ -1106,3 +1106,23 @@ describe("Scenario: Ignore interaction events when no data is loaded", () => {
     expect(serialized.viewport.range).toEqual({ from: 1000, to: 5000 });
   });
 });
+
+describe("Scenario: Emit chart:loading when fetching initial data", () => {
+  it("emit_chartloading_when_fetching_initial_data", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const loadingCallback = vi.fn();
+    eventBus.on("chart:loading", loadingCallback);
+
+    // Start loading - should emit chart:loading with true
+    chartState.setLoading(true);
+    expect(loadingCallback).toHaveBeenCalledTimes(1);
+    expect(loadingCallback.mock.calls[0][0]).toBe(true);
+
+    // Data arrives - should emit chart:loading with false
+    chartState.setLoading(false);
+    expect(loadingCallback).toHaveBeenCalledTimes(2);
+    expect(loadingCallback.mock.calls[1][0]).toBe(false);
+  });
+});
