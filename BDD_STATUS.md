@@ -119,7 +119,7 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Handle interaction:pan with zoom clamping
 - [x] Handle interaction:pan with boundary clamping
 - [x] Handle interaction:pan disables auto-scroll
-- [ ] UNCOVERED: Ignore interaction events when no data is loaded
+- [x] Ignore interaction events when no data is loaded
 
 ## Feature: Loading and Error State
 
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**116/153 scenarios covered.**
+**117/153 scenarios covered.**
 
-37 scenario(s) need tests:
-- Ignore interaction events when no data is loaded
+36 scenario(s) need tests:
 - Emit chart:loading when fetching initial data
 - Emit chart:loading false when data arrives
 - Emit chart:loading for backward pagination
