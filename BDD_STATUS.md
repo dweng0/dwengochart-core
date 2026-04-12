@@ -123,8 +123,8 @@ Checked 153 scenario(s) across 5 test file(s).
 
 ## Feature: Loading and Error State
 
-- [ ] UNCOVERED: Emit chart:loading when fetching initial data
-- [ ] UNCOVERED: Emit chart:loading false when data arrives
+- [x] Emit chart:loading when fetching initial data
+- [x] Emit chart:loading false when data arrives
 - [ ] UNCOVERED: Emit chart:loading for backward pagination
 - [ ] UNCOVERED: Emit chart:error on symbol resolution failure
 - [ ] UNCOVERED: Emit chart:error on data loading failure
@@ -202,11 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**117/153 scenarios covered.**
+**119/153 scenarios covered.**
 
-36 scenario(s) need tests:
-- Emit chart:loading when fetching initial data
-- Emit chart:loading false when data arrives
+34 scenario(s) need tests:
 - Emit chart:loading for backward pagination
 - Emit chart:error on symbol resolution failure
 - Emit chart:error on data loading failure
