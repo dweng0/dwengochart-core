@@ -14,3 +14,4 @@
 | 2026-04-11 | 00:16 | 106/153 | no changes |
 | 2026-04-11 | 08:11 | 110/153 | no changes |
 | 2026-04-11 | 16:07 | 113/153 | 2026-04-11 16:12: implement 'Handle interaction:pan event' scenario |
+| 2026-04-12 | 00:18 | 115/153 | 2026-04-12 00:20: update journal index;2026-04-12 00:20: implement 'Handle interaction:zoom event' and 'Handle interaction:fit event' scenarios |
