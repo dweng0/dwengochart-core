@@ -575,9 +575,15 @@ export class ChartState {
    * Converts deltaX (pixels) to time delta using current viewport scale
    * Panning right (positive deltaX) shows earlier times, so viewport shifts left
    * Clamps the viewport to not scroll before the earliest bar
+   * Ignores the event if barStore exists but has no data loaded
    */
   private handleInteractionPan(payload: { deltaX: number }): void {
     if (!this.viewportRange) {
+      return;
+    }
+
+    // Ignore interaction events when barStore exists but no data is loaded
+    if (this.barStore && this.barStore.getBarCount() === 0) {
       return;
     }
 
@@ -624,12 +630,18 @@ export class ChartState {
   /**
    * Handle interaction:zoom event from renderer
    * Converts delta and centerX to zoom factor and anchor time
+   * Ignores the event if barStore exists but has no data loaded
    */
   private handleInteractionZoom(payload: {
     delta: number;
     centerX: number;
   }): void {
     if (!this.viewportRange) {
+      return;
+    }
+
+    // Ignore interaction events when barStore exists but no data is loaded
+    if (this.barStore && this.barStore.getBarCount() === 0) {
       return;
     }
 

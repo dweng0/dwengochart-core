@@ -1076,3 +1076,33 @@ describe("Scenario: Handle interaction:fit event", () => {
     expect(viewportCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Ignore interaction events when no data is loaded", () => {
+  it("ignore_interaction_events_when_no_data_is_loaded", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    const chartState = new ChartState({
+      eventBus,
+      barStore,
+      viewportWidthPx: 800,
+    });
+
+    // Set an initial viewport range
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Emit interaction events when no data is loaded (barStore is empty)
+    eventBus.emit("interaction:pan", { deltaX: 100 });
+    eventBus.emit("interaction:zoom", { delta: 1.5, centerX: 400 });
+    eventBus.emit("interaction:fit");
+
+    // Verify that no viewport:changed events were emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(0);
+
+    // Verify the viewport range remains unchanged
+    const serialized = chartState.serialize();
+    expect(serialized.viewport.range).toEqual({ from: 1000, to: 5000 });
+  });
+});
