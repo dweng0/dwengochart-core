@@ -961,6 +961,51 @@ describe("Scenario: Handle interaction:pan event", () => {
   });
 });
 
+describe("Scenario: Handle interaction:pan with boundary clamping", () => {
+  it("handle_interactionpan_with_boundary_clamping", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const barStore = new SimpleBarStore();
+    // Assume viewport width of 800 pixels
+    const chartState = new ChartState({
+      eventBus,
+      barStore,
+      viewportWidthPx: 800,
+    });
+
+    // Add bars with the earliest at time 1000
+    barStore.addBars([
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 107, low: 97, close: 105 },
+      { time: 3000, open: 105, high: 110, low: 100, close: 108 },
+    ]);
+
+    // Set initial visible range starting at time 1000 (the earliest bar)
+    // Range [1000, 5000] with viewport width 800px means 5 time units/pixel
+    chartState.setVisibleRange([1000, 5000], [50, 150]);
+
+    const viewportCallback = vi.fn();
+    eventBus.on("viewport:changed", viewportCallback);
+
+    // Emit an interaction:pan event with deltaX: 100 (panning right, which shows earlier times)
+    // With scale 5 time units/pixel, deltaX 100 = 500 time units
+    // This would normally shift viewport from [1000, 5000] to [500, 4500]
+    // But since the earliest bar is at 1000, the viewport should be clamped
+    eventBus.emit("interaction:pan", { deltaX: 100 });
+
+    // Verify the viewport was clamped - should not go before time 1000
+    const serialized = chartState.serialize();
+    // The viewport should be clamped so from >= 1000
+    expect(serialized.viewport.range!.from).toBeGreaterThanOrEqual(1000);
+    // The range should still be 4000 time units (no zoom change)
+    expect(
+      serialized.viewport.range!.to - serialized.viewport.range!.from,
+    ).toBe(4000);
+
+    // Verify the viewport:changed event was emitted
+    expect(viewportCallback).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Scenario: Handle interaction:zoom event", () => {
   it("handle_interactionzoom_event", () => {
     const eventBus = new EventBus<ChartEvents>();

@@ -270,6 +270,7 @@ export interface BarSeriesStore {
   addBars(bars: Bar[]): void;
   getBars(startTime: number, endTime: number): Bar[];
   getLatestBar(): Bar | undefined;
+  getEarliestBarTime(): number | undefined;
   getBarCount(): number;
   clear(): void;
 }
@@ -338,6 +339,14 @@ export class SimpleBarStore implements BarSeriesStore {
       return undefined;
     }
     return entries[entries.length - 1][1];
+  }
+
+  getEarliestBarTime(): number | undefined {
+    const entries = [...this.bars.entries()];
+    if (entries.length === 0) {
+      return undefined;
+    }
+    return entries[0][0];
   }
 
   getBarCount(): number {
@@ -565,6 +574,7 @@ export class ChartState {
    * Handle interaction:pan event from renderer
    * Converts deltaX (pixels) to time delta using current viewport scale
    * Panning right (positive deltaX) shows earlier times, so viewport shifts left
+   * Clamps the viewport to not scroll before the earliest bar
    */
   private handleInteractionPan(payload: { deltaX: number }): void {
     if (!this.viewportRange) {
@@ -578,8 +588,37 @@ export class ChartState {
     // Convert pixel delta to time delta
     const timeDelta = payload.deltaX * timePerPixel;
 
-    // Pan viewport (negative because panning right shows earlier times)
-    this.panViewport(-timeDelta);
+    // Calculate the new viewport range
+    const newFrom = this.viewportRange.from - timeDelta;
+    const newTo = this.viewportRange.to - timeDelta;
+
+    // Get the earliest bar time for boundary clamping
+    const earliestBarTime = this.barStore?.getEarliestBarTime();
+
+    // Clamp the viewport to not scroll before the earliest bar
+    let clampedFrom = newFrom;
+    let clampedTo = newTo;
+    if (earliestBarTime !== undefined && newFrom < earliestBarTime) {
+      // Shift the viewport so it starts at the earliest bar time
+      const offset = earliestBarTime - newFrom;
+      clampedFrom = earliestBarTime;
+      clampedTo = newTo + offset;
+    }
+
+    // Apply the (possibly clamped) viewport range
+    this.viewportRange = { from: clampedFrom, to: clampedTo };
+
+    // User panning disables auto-scroll
+    this.autoScrollEnabled = false;
+
+    if (this.eventBus) {
+      this.eventBus.emit("viewport:changed", {
+        timeRange: [clampedFrom, clampedTo],
+        priceRange: this.priceRange
+          ? [this.priceRange.min, this.priceRange.max]
+          : undefined,
+      });
+    }
   }
 
   /**
