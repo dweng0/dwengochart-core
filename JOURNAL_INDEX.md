@@ -1,7 +1,7 @@
 # Journal Index
 
 <!-- One line per session. Newest at the top. -->
-| 2026-04-12 | 16:11 | 117/153 | 2026-04-12 16:11: implement 'Ignore interaction events when no data is loaded' scenario |
+| 2026-04-12 | 16:13 | 119/153 | 2026-04-12 16:13: implement 'Ignore interaction events when no data is loaded' and 'Emit chart:loading when fetching initial data' scenarios |
 | 2026-04-12 | 08:19 | 116/153 | 2026-04-12 08:19: implement 'Handle interaction:pan with boundary clamping' scenario |
 | 2026-04-12 | 00:20 | 115/153 | 2026-04-12 00:20: implement 'Handle interaction:zoom event' and 'Handle interaction:fit event' scenarios |
 | 2026-03-24 | 11:52 | 24/153 | no changes |
