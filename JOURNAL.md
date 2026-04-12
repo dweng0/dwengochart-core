@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-12 16:11 — Interaction Event Handling (1 scenario)
+
+Implemented "Ignore interaction events when no data is loaded" scenario from Interaction Event Handling feature. Added checks in handleInteractionPan() and handleInteractionZoom() to return early when barStore exists but has no data (getBarCount() === 0). The test verifies that emitting pan, zoom, and fit events when barStore is empty results in no viewport:changed events and the viewport range remains unchanged. Had to fix the implementation after initially breaking two existing tests — the check should only apply when barStore exists AND is empty, not when barStore is undefined (which is valid for viewport math testing). All 99 tests pass, build/lint/format clean. Coverage increased from 116/153 to 117/153. Next: Loading and Error State feature (7 uncovered scenarios: Emit chart:loading when fetching initial data, Emit chart:loading false when data arrives, etc.).
+
 ## 2026-04-12 08:15 — Interaction Event Handling (1 scenario)
 
 Implemented "Handle interaction:pan with boundary clamping" scenario from Interaction Event Handling feature. Added getEarliestBarTime() method to BarSeriesStore interface and SimpleBarStore, then modified handleInteractionPan() to clamp the viewport so it cannot scroll before the earliest bar time. Test verifies that when panning would move viewport before time 1000 (earliest bar), it gets clamped at 1000. All 98 tests pass, build/lint/format clean. Coverage increased from 115/153 to 116/153. Next: continue with remaining Interaction Event Handling scenario ("Ignore interaction events when no data is loaded") or move to Loading and Error State feature.
