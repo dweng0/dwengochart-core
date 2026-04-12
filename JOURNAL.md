@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-12 00:20 — Interaction Event Handling (2 scenarios)
+
+Implemented "Handle interaction:zoom event" and "Handle interaction:fit event" scenarios from Interaction Event Handling feature. The zoom test verifies that emitting interaction:zoom with delta and centerX shrinks/expands the viewport anchored at the corresponding time. The fit test verifies that emitting interaction:fit adjusts the viewport to encompass all loaded bar data with 5% padding. Both tests pass, all 97 tests green, build/lint/format clean. Coverage increased from 113/153 to 115/153. Next: continue with remaining Interaction Event Handling scenarios (pan with boundary clamping, ignore when no data) or move to Loading and Error State feature.
+
 ## 2026-04-11 16:07 — Interaction Event Handling (1 scenario)
 
 Implemented "Handle interaction:pan event" scenario from Interaction Event Handling feature. Added interaction event types to ChartStateEvents interface, viewportWidthPx option to ChartState, and event listeners in the constructor. The handleInteractionPan() method converts deltaX (pixels) to time delta using viewport scale and calls panViewport(). Also stubbed handleInteractionZoom() and handleInteractionFit() for future scenarios. Test passes, all 95 tests green, build/lint/format clean. Coverage increased from 110/153 to 113/153. Next: continue with remaining Interaction Event Handling scenarios (zoom, fit, clamping, boundary, auto-scroll disable, ignore when no data).
