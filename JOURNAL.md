@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-12 08:19 — Interaction Event Handling (1 scenario)
+
+Implemented "Handle interaction:pan with boundary clamping" scenario from Interaction Event Handling feature. Added getEarliestBarTime() method to BarSeriesStore interface and SimpleBarStore, then modified handleInteractionPan() to clamp the viewport so it cannot scroll before the earliest bar time. Test verifies that when panning would move viewport before time 1000 (earliest bar), it gets clamped at 1000. All 98 tests pass, build/lint/format clean. Coverage increased from 115/153 to 116/153. Next: continue with remaining Interaction Event Handling scenario ("Ignore interaction events when no data is loaded") or move to Loading and Error State feature.
+
 ## 2026-04-12 00:18 — Interaction Event Handling (2 scenarios)
 
 Implemented "Handle interaction:zoom event" and "Handle interaction:fit event" scenarios from BDD.md. The zoom test verifies viewport scaling anchored at centerX using delta value, and the fit test ensures viewport adjusts to encompass all bar data with 5% padding. Both tests pass, all 97 tests green, build/lint/format clean. Coverage increased from 113/153 to 115/153. Next: remaining Interaction Event Handling scenarios (pan boundary clamping, ignore when no data) or move to Loading and Error State feature.
