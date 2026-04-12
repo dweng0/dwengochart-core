@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-12 16:08 — Interaction Events + Loading State (2 scenarios)
+
+Implemented two scenarios: (1) "Ignore interaction events when no data is loaded" — added early return checks in handleInteractionPan() and handleInteractionZoom() when barStore exists but has no data. (2) "Emit chart:loading when fetching initial data" — added setLoading() method to ChartState that emits chart:loading events with true/false transitions. All tests pass, build/lint/format clean. Coverage increased from 116/153 to 119/153. Next: continue with Loading and Error State feature (5 remaining scenarios: chart:loading for backward pagination, chart:error scenarios).
+
 ## 2026-04-12 16:13 — Interaction Event Handling + Loading State (3 scenarios)
 
 Implemented two scenarios this session: (1) "Ignore interaction events when no data is loaded" — added checks in handleInteractionPan() and handleInteractionZoom() to return early when barStore exists but has no data. Had to refine the implementation after initially breaking existing tests — the check should only apply when barStore exists AND is empty. (2) "Emit chart:loading when fetching initial data" — added setLoading() method to ChartState that emits chart:loading events. The test also covers "Emit chart:loading false when data arrives" since it verifies both true and false transitions. All 100 tests pass, build/lint/format clean. Coverage increased from 116/153 to 119/153. Next: continue with Loading and Error State feature (5 remaining scenarios: chart:loading for backward pagination, chart:error scenarios).
