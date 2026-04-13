@@ -1,6 +1,6 @@
 # BDD Status
 
-Checked 153 scenario(s) across 6 test file(s).
+Checked 153 scenario(s) across 7 test file(s).
 
 
 ## Feature: Bar Data Model
@@ -148,11 +148,11 @@ Checked 153 scenario(s) across 6 test file(s).
 - [ ] UNCOVERED: Renderer-to-core event payloads are typed
 - [ ] UNCOVERED: Widget-to-renderer event payloads are typed
 - [ ] UNCOVERED: Internal core event payloads are typed
-- [ ] UNCOVERED: Multiple listeners receive the same event
-- [ ] UNCOVERED: Unsubscribed listener does not receive events
-- [ ] UNCOVERED: Event bus is injectable
-- [ ] UNCOVERED: Listener that throws does not crash other listeners
-- [ ] UNCOVERED: Events are delivered in emission order
+- [x] Multiple listeners receive the same event
+- [x] Unsubscribed listener does not receive events
+- [x] Event bus is injectable
+- [x] Listener that throws does not crash other listeners
+- [x] Events are delivered in emission order
 
 ## Feature: Datafeed Adapter
 
@@ -202,18 +202,13 @@ Checked 153 scenario(s) across 6 test file(s).
 - [x] Format respects timezone
 
 ---
-**133/153 scenarios covered.**
+**138/153 scenarios covered.**
 
-20 scenario(s) need tests:
+15 scenario(s) need tests:
 - Core-to-renderer event payloads are typed
 - Renderer-to-core event payloads are typed
 - Widget-to-renderer event payloads are typed
 - Internal core event payloads are typed
-- Multiple listeners receive the same event
-- Unsubscribed listener does not receive events
-- Event bus is injectable
-- Listener that throws does not crash other listeners
-- Events are delivered in emission order
 - Adapter calls onReady and emits datafeed:ready
 - Adapter handles symbol resolution failure
 - Adapter fetches historical bars and populates series
