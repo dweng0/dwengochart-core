@@ -1520,6 +1520,12 @@ export class SubscriptionManager {
    * @param resolution - Resolution string (e.g., "1", "5", "1D")
    */
   createSubscription(guid: string, symbol: string, resolution: string): void {
+    // If subscription already exists, remove it first (replace old subscription)
+    if (this.subscriptions.has(guid)) {
+      this.subscriptions.delete(guid);
+      this.eventBus.emit("subscription:removed", { guid });
+    }
+
     const subscription: SubscriptionInfo = { guid, symbol, resolution };
     this.subscriptions.set(guid, subscription);
     this.eventBus.emit("subscription:created", { guid, symbol, resolution });

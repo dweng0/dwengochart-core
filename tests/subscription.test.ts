@@ -145,3 +145,32 @@ describe("Scenario: Ignore updates for removed subscriptions", () => {
     expect(seriesDataCallback).not.toHaveBeenCalled();
   });
 });
+
+describe("Scenario: Handle duplicate subscription creation", () => {
+  it("handle_duplicate_subscription_creation", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    const createdCallback = vi.fn();
+    const removedCallback = vi.fn();
+    eventBus.on("subscription:created", createdCallback);
+    eventBus.on("subscription:removed", removedCallback);
+
+    // Create initial subscription
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(true);
+
+    // Create another subscription with the same guid
+    subscriptionManager.createSubscription("sub_1", "GOOG", "5");
+
+    // Verify only one subscription exists
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(true);
+    const sub = subscriptionManager.getSubscription("sub_1");
+    expect(sub?.symbol).toBe("GOOG");
+    expect(sub?.resolution).toBe("5");
+
+    // Verify events were emitted
+    expect(createdCallback).toHaveBeenCalledTimes(2);
+    expect(removedCallback).toHaveBeenCalledTimes(1);
+  });
+});
