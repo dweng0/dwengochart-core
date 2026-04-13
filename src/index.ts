@@ -1520,10 +1520,18 @@ export class SubscriptionManager {
    * @param resolution - Resolution string (e.g., "1", "5", "1D")
    */
   createSubscription(guid: string, symbol: string, resolution: string): void {
-    // If subscription already exists, remove it first (replace old subscription)
+    // If subscription already exists with same guid, remove it first (replace old subscription)
     if (this.subscriptions.has(guid)) {
       this.subscriptions.delete(guid);
       this.eventBus.emit("subscription:removed", { guid });
+    }
+
+    // Remove any existing subscriptions for the same symbol (different resolutions)
+    // This ensures only the latest resolution subscription is active for a given symbol
+    const existingSubs = this.getSubscriptionsBySymbol(symbol);
+    for (const sub of existingSubs) {
+      this.subscriptions.delete(sub.guid);
+      this.eventBus.emit("subscription:removed", { guid: sub.guid });
     }
 
     const subscription: SubscriptionInfo = { guid, symbol, resolution };

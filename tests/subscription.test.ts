@@ -96,22 +96,29 @@ describe("Scenario: Remove all subscriptions on symbol change", () => {
     const eventBus = new EventBus<ChartStateEvents>();
     const subscriptionManager = new SubscriptionManager(eventBus);
 
-    // Create active subscriptions for AAPL
+    // Create active subscriptions for different symbols
+    // Note: Creating sub_3 for AAPL will automatically remove sub_1 (same symbol)
     subscriptionManager.createSubscription("sub_1", "AAPL", "1");
-    subscriptionManager.createSubscription("sub_2", "AAPL", "5");
+    subscriptionManager.createSubscription("sub_2", "GOOG", "5");
+    subscriptionManager.createSubscription("sub_3", "AAPL", "5");
 
     const eventCallback = vi.fn();
     eventBus.on("subscription:removed", eventCallback);
 
+    // At this point, only sub_2 (GOOG) and sub_3 (AAPL) exist
+    // sub_1 was removed when sub_3 was created (same symbol)
+
     // Remove all subscriptions for AAPL (simulating symbol change)
     subscriptionManager.removeSubscriptionsBySymbol("AAPL");
 
-    // Verify subscriptions are no longer tracked
-    expect(subscriptionManager.hasSubscription("sub_1")).toBe(false);
-    expect(subscriptionManager.hasSubscription("sub_2")).toBe(false);
+    // Verify AAPL subscription is no longer tracked
+    expect(subscriptionManager.hasSubscription("sub_3")).toBe(false);
 
-    // Verify subscription:removed events were emitted for each
-    expect(eventCallback).toHaveBeenCalledTimes(2);
+    // Verify GOOG subscription still exists
+    expect(subscriptionManager.hasSubscription("sub_2")).toBe(true);
+
+    // Verify subscription:removed event was emitted for sub_3
+    expect(eventCallback).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -200,5 +207,39 @@ describe("Scenario: Remove all subscriptions on resolution change", () => {
 
     // Verify subscription:removed events were emitted for each removed subscription
     expect(eventCallback).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("Scenario: Concurrent subscriptions for same symbol different resolutions", () => {
+  it("concurrent_subscriptions_for_same_symbol_different_resolutions", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    const createdCallback = vi.fn();
+    const removedCallback = vi.fn();
+    eventBus.on("subscription:created", createdCallback);
+    eventBus.on("subscription:removed", removedCallback);
+
+    // Create subscription for AAPL at resolution "1"
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+    expect(subscriptionManager.getSubscriptionsBySymbol("AAPL").length).toBe(1);
+
+    // Create subscription for AAPL at resolution "5"
+    // According to the scenario, only the latest resolution subscription should be active
+    // This implies we need to remove the previous resolution subscription for the same symbol
+    subscriptionManager.createSubscription("sub_2", "AAPL", "5");
+
+    // Verify only one subscription exists for AAPL (the latest resolution)
+    const aaplSubs = subscriptionManager.getSubscriptionsBySymbol("AAPL");
+    expect(aaplSubs.length).toBe(1);
+    expect(aaplSubs[0].resolution).toBe("5");
+
+    // Verify the old subscription was removed
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(false);
+    expect(subscriptionManager.hasSubscription("sub_2")).toBe(true);
+
+    // Verify events were emitted
+    expect(createdCallback).toHaveBeenCalledTimes(2);
+    expect(removedCallback).toHaveBeenCalledTimes(1);
   });
 });
