@@ -1,6 +1,6 @@
 # BDD Status
 
-Checked 153 scenario(s) across 5 test file(s).
+Checked 153 scenario(s) across 6 test file(s).
 
 
 ## Feature: Bar Data Model
@@ -133,14 +133,14 @@ Checked 153 scenario(s) across 5 test file(s).
 
 ## Feature: Real-time Subscription Management
 
-- [ ] UNCOVERED: Create a subscription
-- [ ] UNCOVERED: Receive a real-time bar update
-- [ ] UNCOVERED: Remove a subscription
-- [ ] UNCOVERED: Remove all subscriptions on symbol change
-- [ ] UNCOVERED: Ignore updates for removed subscriptions
-- [ ] UNCOVERED: Handle duplicate subscription creation
-- [ ] UNCOVERED: Remove all subscriptions on resolution change
-- [ ] UNCOVERED: Concurrent subscriptions for same symbol different resolutions
+- [x] Create a subscription
+- [x] Receive a real-time bar update
+- [x] Remove a subscription
+- [x] Remove all subscriptions on symbol change
+- [x] Ignore updates for removed subscriptions
+- [x] Handle duplicate subscription creation
+- [x] Remove all subscriptions on resolution change
+- [x] Concurrent subscriptions for same symbol different resolutions
 
 ## Feature: Event Bus Integration
 
@@ -202,17 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**125/153 scenarios covered.**
+**133/153 scenarios covered.**
 
-28 scenario(s) need tests:
-- Create a subscription
-- Receive a real-time bar update
-- Remove a subscription
-- Remove all subscriptions on symbol change
-- Ignore updates for removed subscriptions
-- Handle duplicate subscription creation
-- Remove all subscriptions on resolution change
-- Concurrent subscriptions for same symbol different resolutions
+20 scenario(s) need tests:
 - Core-to-renderer event payloads are typed
 - Renderer-to-core event payloads are typed
 - Widget-to-renderer event payloads are typed
