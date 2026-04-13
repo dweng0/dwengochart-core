@@ -1506,6 +1506,7 @@ export interface SubscriptionInfo {
  */
 export class SubscriptionManager {
   private subscriptions: Map<string, SubscriptionInfo> = new Map();
+  private seriesToSubscription: Map<string, string> = new Map();
   private eventBus: EventBus<ChartStateEvents>;
 
   constructor(eventBus: EventBus<ChartStateEvents>) {
@@ -1624,10 +1625,54 @@ export class SubscriptionManager {
   }
 
   /**
+   * Map a series to a subscription for real-time updates.
+   * @param seriesId - Series identifier
+   * @param subscriptionGuid - Subscription guid
+   */
+  mapSeriesToSubscription(seriesId: string, subscriptionGuid: string): void {
+    const sub = this.subscriptions.get(subscriptionGuid);
+    if (sub) {
+      // Store the mapping
+      this.seriesToSubscription.set(seriesId, subscriptionGuid);
+    }
+  }
+
+  /**
+   * Handle a real-time bar update from the datafeed.
+   * Merges the bar into the bar store and emits series:data event.
+   * @param subscriptionGuid - Subscription guid
+   * @param bar - The new bar
+   * @param barStore - The bar store to merge into
+   */
+  handleRealtimeBar(
+    subscriptionGuid: string,
+    bar: Bar,
+    barStore: BarSeriesStore,
+  ): void {
+    // Check if subscription exists
+    const sub = this.subscriptions.get(subscriptionGuid);
+    if (!sub) {
+      // Ignore updates for removed subscriptions
+      return;
+    }
+
+    // Merge bar into store
+    barStore.addBars([bar]);
+
+    // Find series mapped to this subscription and emit event
+    for (const [seriesId, guid] of this.seriesToSubscription.entries()) {
+      if (guid === subscriptionGuid) {
+        this.eventBus.emit("series:data", { seriesId, bars: [bar] });
+      }
+    }
+  }
+
+  /**
    * Clear all subscriptions without emitting events.
    */
   clear(): void {
     this.subscriptions.clear();
+    this.seriesToSubscription.clear();
   }
 }
 

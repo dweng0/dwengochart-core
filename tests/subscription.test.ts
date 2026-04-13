@@ -5,6 +5,8 @@ import {
   SymbolInfo,
   ChartStateEvents,
   SubscriptionManager,
+  Bar,
+  SimpleBarStore,
 } from "../src/index";
 
 describe("Scenario: Create a subscription", () => {
@@ -23,6 +25,45 @@ describe("Scenario: Create a subscription", () => {
       guid: "sub_1",
       symbol: "AAPL",
       resolution: "1",
+    });
+  });
+});
+
+describe("Scenario: Receive a real-time bar update", () => {
+  it("receive_a_realtime_bar_update", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const barStore = new SimpleBarStore();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    // Create an active subscription
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+
+    // Map series "candles" to this subscription
+    subscriptionManager.mapSeriesToSubscription("candles", "sub_1");
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Simulate datafeed delivering a new bar
+    const newBar: Bar = {
+      time: 1700000000000,
+      open: 100,
+      high: 105,
+      low: 95,
+      close: 102,
+    };
+    subscriptionManager.handleRealtimeBar("sub_1", newBar, barStore);
+
+    // Verify bar was merged into the store
+    const bars = barStore.getBars(1700000000000, 1700000000000);
+    expect(bars.length).toBe(1);
+    expect(bars[0].close).toBe(102);
+
+    // Verify series:data event was emitted
+    expect(seriesDataCallback).toHaveBeenCalledTimes(1);
+    expect(seriesDataCallback.mock.calls[0][0]).toEqual({
+      seriesId: "candles",
+      bars: [newBar],
     });
   });
 });
