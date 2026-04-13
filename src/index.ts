@@ -482,6 +482,8 @@ export interface ChartStateEvents {
   "interaction:pan": { deltaX: number };
   "interaction:zoom": { delta: number; centerX: number };
   "interaction:fit": undefined;
+  "subscription:created": { guid: string; symbol: string; resolution: string };
+  "subscription:removed": { guid: string };
 }
 
 /**
@@ -1486,6 +1488,146 @@ export function resolutionToMilliseconds(resolution: string): number {
       return parsed.value * 30 * 24 * 60 * 60 * 1000;
     default:
       throw new Error("unknown resolution type");
+  }
+}
+
+/**
+ * Subscription information
+ */
+export interface SubscriptionInfo {
+  guid: string;
+  symbol: string;
+  resolution: string;
+}
+
+/**
+ * Manages real-time data subscriptions for chart symbols and resolutions.
+ * Tracks active subscriptions and emits events when subscriptions are created or removed.
+ */
+export class SubscriptionManager {
+  private subscriptions: Map<string, SubscriptionInfo> = new Map();
+  private eventBus: EventBus<ChartStateEvents>;
+
+  constructor(eventBus: EventBus<ChartStateEvents>) {
+    this.eventBus = eventBus;
+  }
+
+  /**
+   * Create a new subscription for a symbol at a given resolution.
+   * @param guid - Unique identifier for this subscription
+   * @param symbol - Symbol name (e.g., "AAPL")
+   * @param resolution - Resolution string (e.g., "1", "5", "1D")
+   */
+  createSubscription(guid: string, symbol: string, resolution: string): void {
+    const subscription: SubscriptionInfo = { guid, symbol, resolution };
+    this.subscriptions.set(guid, subscription);
+    this.eventBus.emit("subscription:created", { guid, symbol, resolution });
+  }
+
+  /**
+   * Check if a subscription exists.
+   * @param guid - Subscription identifier
+   * @returns true if the subscription exists
+   */
+  hasSubscription(guid: string): boolean {
+    return this.subscriptions.has(guid);
+  }
+
+  /**
+   * Get a subscription by guid.
+   * @param guid - Subscription identifier
+   * @returns The subscription info or undefined
+   */
+  getSubscription(guid: string): SubscriptionInfo | undefined {
+    return this.subscriptions.get(guid);
+  }
+
+  /**
+   * Remove a subscription by guid.
+   * @param guid - Subscription identifier
+   */
+  removeSubscription(guid: string): void {
+    const removed = this.subscriptions.delete(guid);
+    if (removed) {
+      this.eventBus.emit("subscription:removed", { guid });
+    }
+  }
+
+  /**
+   * Remove all subscriptions for a given symbol.
+   * @param symbol - Symbol name to remove subscriptions for
+   */
+  removeSubscriptionsBySymbol(symbol: string): void {
+    const toRemove: string[] = [];
+    for (const [guid, sub] of this.subscriptions.entries()) {
+      if (sub.symbol === symbol) {
+        toRemove.push(guid);
+      }
+    }
+    for (const guid of toRemove) {
+      this.removeSubscription(guid);
+    }
+  }
+
+  /**
+   * Remove all subscriptions for a given resolution.
+   * @param resolution - Resolution to remove subscriptions for
+   */
+  removeSubscriptionsByResolution(resolution: string): void {
+    const toRemove: string[] = [];
+    for (const [guid, sub] of this.subscriptions.entries()) {
+      if (sub.resolution === resolution) {
+        toRemove.push(guid);
+      }
+    }
+    for (const guid of toRemove) {
+      this.removeSubscription(guid);
+    }
+  }
+
+  /**
+   * Get all active subscriptions.
+   * @returns Array of subscription info
+   */
+  getAllSubscriptions(): SubscriptionInfo[] {
+    return Array.from(this.subscriptions.values());
+  }
+
+  /**
+   * Get subscriptions for a specific symbol.
+   * @param symbol - Symbol name
+   * @returns Array of subscription info for that symbol
+   */
+  getSubscriptionsBySymbol(symbol: string): SubscriptionInfo[] {
+    const result: SubscriptionInfo[] = [];
+    for (const sub of this.subscriptions.values()) {
+      if (sub.symbol === symbol) {
+        result.push(sub);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Get subscriptions for a specific resolution.
+   * @param resolution - Resolution string
+   * @returns Array of subscription info for that resolution
+   */
+  getSubscriptionsByResolution(resolution: string): SubscriptionInfo[] {
+    const result: SubscriptionInfo[] = [];
+    for (const sub of this.subscriptions.values()) {
+      if (sub.resolution === resolution) {
+        result.push(sub);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Clear all subscriptions without emitting events.
+   */
+  clear(): void {
+    this.subscriptions.clear();
   }
 }
 
