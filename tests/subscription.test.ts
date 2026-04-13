@@ -67,3 +67,26 @@ describe("Scenario: Receive a real-time bar update", () => {
     });
   });
 });
+
+describe("Scenario: Remove a subscription", () => {
+  it("remove_a_subscription", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    // Create an active subscription
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+
+    const eventCallback = vi.fn();
+    eventBus.on("subscription:removed", eventCallback);
+
+    // Remove the subscription
+    subscriptionManager.removeSubscription("sub_1");
+
+    // Verify subscription is no longer tracked
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(false);
+
+    // Verify subscription:removed event was emitted
+    expect(eventCallback).toHaveBeenCalledTimes(1);
+    expect(eventCallback.mock.calls[0][0]).toEqual({ guid: "sub_1" });
+  });
+});
