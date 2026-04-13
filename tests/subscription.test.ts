@@ -90,3 +90,27 @@ describe("Scenario: Remove a subscription", () => {
     expect(eventCallback.mock.calls[0][0]).toEqual({ guid: "sub_1" });
   });
 });
+
+describe("Scenario: Remove all subscriptions on symbol change", () => {
+  it("remove_all_subscriptions_on_symbol_change", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    // Create active subscriptions for AAPL
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+    subscriptionManager.createSubscription("sub_2", "AAPL", "5");
+
+    const eventCallback = vi.fn();
+    eventBus.on("subscription:removed", eventCallback);
+
+    // Remove all subscriptions for AAPL (simulating symbol change)
+    subscriptionManager.removeSubscriptionsBySymbol("AAPL");
+
+    // Verify subscriptions are no longer tracked
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(false);
+    expect(subscriptionManager.hasSubscription("sub_2")).toBe(false);
+
+    // Verify subscription:removed events were emitted for each
+    expect(eventCallback).toHaveBeenCalledTimes(2);
+  });
+});
