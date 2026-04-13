@@ -1,5 +1,9 @@
 # Journal
 
+## 2026-04-13 16:31 — Event Bus Integration (5 scenarios)
+
+Implemented 5 Event Bus Integration scenarios: "Multiple listeners receive the same event", "Unsubscribed listener does not receive events", "Event bus is injectable", "Listener that throws does not crash other listeners", and "Events are delivered in emission order". Created SafeEventBus wrapper class that catches errors from listeners to prevent one failing listener from crashing others. Added DOM to tsconfig.json lib to support console.error for error reporting. All 116 tests pass, build/lint/format clean. Coverage increased from 133/153 to 138/153. Remaining Event Bus Integration scenarios (4 typed payload checks) require TypeScript type-level testing. Next: Datafeed Adapter feature (11 uncovered scenarios).
+
 ## 2026-04-13 08:39 — Real-time Subscription Management complete (8 scenarios)
 
 Implemented all 8 scenarios in the Real-time Subscription Management feature: Create a subscription, Receive a real-time bar update, Remove a subscription, Remove all subscriptions on symbol change, Ignore updates for removed subscriptions, Handle duplicate subscription creation, Remove all subscriptions on resolution change, and Concurrent subscriptions for same symbol different resolutions. Built SubscriptionManager class with full subscription lifecycle management, series-to-subscription mapping, and event emission. Extended ChartStateEvents interface with subscription:created and subscription:removed event types. All 111 tests pass, build/lint/format clean. Coverage increased from 125/153 to 133/153. Next: Event Bus Integration feature (9 uncovered scenarios) or Datafeed Adapter feature (11 uncovered scenarios).
