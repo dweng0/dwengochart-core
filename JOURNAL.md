@@ -1,5 +1,13 @@
 # Journal
 
+## 2026-04-13 08:39 — Real-time Subscription Management complete (8 scenarios)
+
+Implemented all 8 scenarios in the Real-time Subscription Management feature: Create a subscription, Receive a real-time bar update, Remove a subscription, Remove all subscriptions on symbol change, Ignore updates for removed subscriptions, Handle duplicate subscription creation, Remove all subscriptions on resolution change, and Concurrent subscriptions for same symbol different resolutions. Built SubscriptionManager class with full subscription lifecycle management, series-to-subscription mapping, and event emission. Extended ChartStateEvents interface with subscription:created and subscription:removed event types. All 111 tests pass, build/lint/format clean. Coverage increased from 125/153 to 133/153. Next: Event Bus Integration feature (9 uncovered scenarios) or Datafeed Adapter feature (11 uncovered scenarios).
+
+## 2026-04-13 08:49 — Real-time Subscription Management complete (8 scenarios)
+
+Implemented all 8 scenarios in the Real-time Subscription Management feature: Create a subscription, Receive a real-time bar update, Remove a subscription, Remove all subscriptions on symbol change, Ignore updates for removed subscriptions, Handle duplicate subscription creation, Remove all subscriptions on resolution change, and Concurrent subscriptions for same symbol different resolutions. Added SubscriptionManager class with full subscription lifecycle management, series-to-subscription mapping, and event emission. Also extended ChartStateEvents interface with subscription:created and subscription:removed event types. All 111 tests pass, build/lint/format clean. Coverage increased from 125/153 to 133/153. Next: Event Bus Integration feature (9 uncovered scenarios) or Datafeed Adapter feature (11 uncovered scenarios).
+
 ## 2026-04-13 00:19 — Session review (no commits)
 
 No commits made this session — reviewed the codebase state and current progress. The Interaction Events + Loading State feature is partially complete (3/8 scenarios covered, 119/153 total coverage). Remaining work: chart:loading for backward pagination (1 scenario) and chart:error handling (4 scenarios). Next: continue with Loading and Error State feature, starting with "Emit chart:loading when paginating backwards" scenario.
