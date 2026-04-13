@@ -174,3 +174,31 @@ describe("Scenario: Handle duplicate subscription creation", () => {
     expect(removedCallback).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Scenario: Remove all subscriptions on resolution change", () => {
+  it("remove_all_subscriptions_on_resolution_change", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    // Create active subscriptions for resolution "1"
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+    subscriptionManager.createSubscription("sub_2", "GOOG", "1");
+    subscriptionManager.createSubscription("sub_3", "MSFT", "5");
+
+    const eventCallback = vi.fn();
+    eventBus.on("subscription:removed", eventCallback);
+
+    // Remove all subscriptions for resolution "1" (simulating resolution change)
+    subscriptionManager.removeSubscriptionsByResolution("1");
+
+    // Verify subscriptions for resolution "1" are removed
+    expect(subscriptionManager.hasSubscription("sub_1")).toBe(false);
+    expect(subscriptionManager.hasSubscription("sub_2")).toBe(false);
+
+    // Verify subscription for resolution "5" still exists
+    expect(subscriptionManager.hasSubscription("sub_3")).toBe(true);
+
+    // Verify subscription:removed events were emitted for each removed subscription
+    expect(eventCallback).toHaveBeenCalledTimes(2);
+  });
+});
