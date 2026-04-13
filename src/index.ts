@@ -470,8 +470,8 @@ export interface ChartStateEvents {
   };
   "state:reset": undefined;
   "series:data": { seriesId: string; bars: Bar[] };
-  "chart:loading": boolean;
-  "chart:error": string | null;
+  "chart:loading": { loading: boolean; region?: "left" | "center" };
+  "chart:error": { message: string } | null;
   "series:add": { id: string; type: string; options?: Record<string, unknown> };
   "series:remove": { id: string };
   "series:update": { id: string; options: Record<string, unknown> };
@@ -941,11 +941,21 @@ export class ChartState {
 
   /**
    * Set the loading state
-   * Emits a "chart:loading" event with the loading boolean
+   * Emits a "chart:loading" event with { loading: boolean, region?: "left" | "center" }
    */
-  setLoading(loading: boolean): void {
+  setLoading(loading: boolean, region?: "left" | "center"): void {
     if (this.eventBus) {
-      this.eventBus.emit("chart:loading", loading);
+      this.eventBus.emit("chart:loading", { loading, region });
+    }
+  }
+
+  /**
+   * Set the error state
+   * Emits a "chart:error" event with { message: string } or null to clear
+   */
+  setError(message: string | null): void {
+    if (this.eventBus) {
+      this.eventBus.emit("chart:error", message === null ? null : { message });
     }
   }
 
@@ -1070,6 +1080,26 @@ export class ChartState {
 
     if (this.eventBus) {
       this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
+      // Clear any previous error on successful resolution
+      this.eventBus.emit("chart:error", null);
+    }
+  }
+
+  /**
+   * Fail a symbol resolution with an error reason
+   * Emits a "chart:error" event with { message: string }
+   * If the request ID is stale, the error is still emitted
+   */
+  failSymbolResolution(requestId: number, reason: string): void {
+    // Only emit error if this is still the pending request
+    if (this.pendingSymbolRequest !== requestId) {
+      return;
+    }
+
+    this.pendingSymbolRequest = undefined;
+
+    if (this.eventBus) {
+      this.eventBus.emit("chart:error", { message: reason });
     }
   }
 

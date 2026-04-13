@@ -13,8 +13,8 @@ interface ChartEvents {
   };
   "state:reset": undefined;
   "series:data": { seriesId: string; bars: any[] };
-  "chart:loading": boolean;
-  "chart:error": string | null;
+  "chart:loading": { loading: boolean; region?: "left" | "center" };
+  "chart:error": { message: string } | null;
   "series:add": { id: string; type: string; options?: Record<string, unknown> };
   "series:remove": { id: string };
   "series:update": { id: string; options: Record<string, unknown> };
@@ -1115,14 +1115,98 @@ describe("Scenario: Emit chart:loading when fetching initial data", () => {
     const loadingCallback = vi.fn();
     eventBus.on("chart:loading", loadingCallback);
 
-    // Start loading - should emit chart:loading with true
+    // Start loading - should emit chart:loading with { loading: true }
     chartState.setLoading(true);
     expect(loadingCallback).toHaveBeenCalledTimes(1);
-    expect(loadingCallback.mock.calls[0][0]).toBe(true);
+    expect(loadingCallback.mock.calls[0][0]).toEqual({ loading: true });
 
-    // Data arrives - should emit chart:loading with false
+    // Data arrives - should emit chart:loading with { loading: false }
     chartState.setLoading(false);
     expect(loadingCallback).toHaveBeenCalledTimes(2);
-    expect(loadingCallback.mock.calls[1][0]).toBe(false);
+    expect(loadingCallback.mock.calls[1][0]).toEqual({ loading: false });
+  });
+});
+
+describe("Scenario: Emit chart:loading for backward pagination", () => {
+  it("emit_chartloading_for_backward_pagination", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const loadingCallback = vi.fn();
+    eventBus.on("chart:loading", loadingCallback);
+
+    // User scrolls to left edge, adapter requests earlier history
+    // Should emit chart:loading with { loading: true, region: "left" }
+    chartState.setLoading(true, "left");
+    expect(loadingCallback).toHaveBeenCalledTimes(1);
+    expect(loadingCallback.mock.calls[0][0]).toEqual({
+      loading: true,
+      region: "left",
+    });
+
+    // Earlier bars arrive - should emit chart:loading with { loading: false }
+    chartState.setLoading(false);
+    expect(loadingCallback).toHaveBeenCalledTimes(2);
+    expect(loadingCallback.mock.calls[1][0]).toEqual({ loading: false });
+  });
+});
+
+describe("Scenario: Emit chart:error on symbol resolution failure", () => {
+  it("emit_charterror_on_symbol_resolution_failure", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const errorCallback = vi.fn();
+    eventBus.on("chart:error", errorCallback);
+
+    // Start symbol resolution
+    const requestId = chartState.beginSymbolResolution("INVALID", "1D");
+
+    // Fail the resolution
+    chartState.failSymbolResolution(requestId, "Symbol not found");
+
+    // Verify chart:error event was emitted with correct message
+    expect(errorCallback).toHaveBeenCalledTimes(1);
+    expect(errorCallback.mock.calls[0][0]).toEqual({
+      message: "Symbol not found",
+    });
+  });
+});
+
+describe("Scenario: Clear chart:error on successful data load", () => {
+  it("clear_chartisterror_on_successful_data_load", () => {
+    const eventBus = new EventBus<ChartEvents>();
+    const chartState = new ChartState({ eventBus });
+
+    const errorCallback = vi.fn();
+    eventBus.on("chart:error", errorCallback);
+
+    // First, simulate an error state
+    chartState.setError("Previous error");
+    expect(errorCallback).toHaveBeenCalledTimes(1);
+    expect(errorCallback.mock.calls[0][0]).toEqual({
+      message: "Previous error",
+    });
+
+    // Start symbol resolution
+    const requestId = chartState.beginSymbolResolution("AAPL", "1D");
+
+    // Complete the resolution successfully
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    chartState.completeSymbolResolution(requestId, symbolInfo);
+
+    // Verify chart:error was emitted with null to clear the error
+    expect(errorCallback).toHaveBeenCalledTimes(2);
+    expect(errorCallback.mock.calls[1][0]).toBeNull();
   });
 });

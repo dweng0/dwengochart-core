@@ -125,11 +125,11 @@ Checked 153 scenario(s) across 5 test file(s).
 
 - [x] Emit chart:loading when fetching initial data
 - [x] Emit chart:loading false when data arrives
-- [ ] UNCOVERED: Emit chart:loading for backward pagination
-- [ ] UNCOVERED: Emit chart:error on symbol resolution failure
-- [ ] UNCOVERED: Emit chart:error on data loading failure
-- [ ] UNCOVERED: Clear chart:error on successful data load
-- [ ] UNCOVERED: Emit chart:error null on reset
+- [x] Emit chart:loading for backward pagination
+- [x] Emit chart:error on symbol resolution failure
+- [x] Emit chart:error on data loading failure
+- [x] Clear chart:error on successful data load
+- [x] Emit chart:error null on reset
 
 ## Feature: Real-time Subscription Management
 
@@ -157,7 +157,7 @@ Checked 153 scenario(s) across 5 test file(s).
 ## Feature: Datafeed Adapter
 
 - [ ] UNCOVERED: Adapter calls onReady and emits datafeed:ready
-- [ ] UNCOVERED: Adapter resolves a symbol and updates state
+- [x] Adapter resolves a symbol and updates state
 - [ ] UNCOVERED: Adapter handles symbol resolution failure
 - [ ] UNCOVERED: Adapter fetches historical bars and populates series
 - [ ] UNCOVERED: Adapter emits chart:loading during data fetch
@@ -202,14 +202,9 @@ Checked 153 scenario(s) across 5 test file(s).
 - [x] Format respects timezone
 
 ---
-**119/153 scenarios covered.**
+**125/153 scenarios covered.**
 
-34 scenario(s) need tests:
-- Emit chart:loading for backward pagination
-- Emit chart:error on symbol resolution failure
-- Emit chart:error on data loading failure
-- Clear chart:error on successful data load
-- Emit chart:error null on reset
+28 scenario(s) need tests:
 - Create a subscription
 - Receive a real-time bar update
 - Remove a subscription
@@ -228,7 +223,6 @@ Checked 153 scenario(s) across 5 test file(s).
 - Listener that throws does not crash other listeners
 - Events are delivered in emission order
 - Adapter calls onReady and emits datafeed:ready
-- Adapter resolves a symbol and updates state
 - Adapter handles symbol resolution failure
 - Adapter fetches historical bars and populates series
 - Adapter emits chart:loading during data fetch
