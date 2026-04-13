@@ -4,6 +4,88 @@
 import { EventBus } from "@yatamazuki/typed-eventbus";
 
 /**
+ * A wrapper around EventBus that catches errors from listeners
+ * to ensure one failing listener doesn't prevent others from receiving events.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class SafeEventBus<Events extends Record<string, any>> {
+  private eventBus: EventBus<Events>;
+
+  constructor(eventBus?: EventBus<Events>) {
+    this.eventBus = eventBus ?? new EventBus<Events>();
+  }
+
+  /**
+   * Subscribe to an event
+   */
+  on<K extends keyof Events>(
+    event: K,
+    callback: (payload: Events[K]) => void,
+  ): () => void {
+    const safeCallback = (payload: Events[K]) => {
+      try {
+        callback(payload);
+      } catch (error) {
+        // Log the error but don't propagate it
+        console.error(`Error in event listener for "${String(event)}":`, error);
+      }
+    };
+    return this.eventBus.on(event, safeCallback);
+  }
+
+  /**
+   * Unsubscribe from an event
+   */
+  off<K extends keyof Events>(
+    event: K,
+    callback: (payload: Events[K]) => void,
+  ): void {
+    this.eventBus.off(event, callback);
+  }
+
+  /**
+   * Emit an event
+   */
+  emit<K extends keyof Events>(
+    event: K,
+    ...args: Events[K] extends undefined ? [] : [payload: Events[K]]
+  ): void {
+    this.eventBus.emit(event, ...args);
+  }
+
+  /**
+   * Subscribe to an event for a single emission only
+   */
+  once<K extends keyof Events>(
+    event: K,
+    callback: (payload: Events[K]) => void,
+  ): () => void {
+    const safeCallback = (payload: Events[K]) => {
+      try {
+        callback(payload);
+      } catch (error) {
+        console.error(`Error in event listener for "${String(event)}":`, error);
+      }
+    };
+    return this.eventBus.once(event, safeCallback);
+  }
+
+  /**
+   * Clear all listeners
+   */
+  clear<K extends keyof Events>(event?: K): void {
+    this.eventBus.clear(event);
+  }
+
+  /**
+   * Get the number of listeners for an event
+   */
+  listenerCount<K extends keyof Events>(event: K): number {
+    return this.eventBus.listenerCount(event);
+  }
+}
+
+/**
  * OHLCV Bar data structure
  */
 export interface Bar {
