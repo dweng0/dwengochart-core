@@ -114,3 +114,34 @@ describe("Scenario: Remove all subscriptions on symbol change", () => {
     expect(eventCallback).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("Scenario: Ignore updates for removed subscriptions", () => {
+  it("ignore_updates_for_removed_subscriptions", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const barStore = new SimpleBarStore();
+    const subscriptionManager = new SubscriptionManager(eventBus);
+
+    // Create and then remove a subscription
+    subscriptionManager.createSubscription("sub_1", "AAPL", "1");
+    subscriptionManager.removeSubscription("sub_1");
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Simulate datafeed delivering a bar for the removed subscription
+    const newBar: Bar = {
+      time: 1700000000000,
+      open: 100,
+      high: 105,
+      low: 95,
+      close: 102,
+    };
+    subscriptionManager.handleRealtimeBar("sub_1", newBar, barStore);
+
+    // Verify bar was NOT added to the store
+    expect(barStore.getBarCount()).toBe(0);
+
+    // Verify no series:data event was emitted
+    expect(seriesDataCallback).not.toHaveBeenCalled();
+  });
+});
