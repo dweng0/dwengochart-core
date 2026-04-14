@@ -457,3 +457,44 @@ describe("Scenario: Adapter fetches historical bars and populates series", () =>
     expect(barStore.getBarCount()).toBe(3);
   });
 });
+
+describe("Scenario: Adapter emits chart:loading during data fetch", () => {
+  it("adapter_emits_chart_loading_during_data_fetch", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+    ];
+    datafeed.addBars("AAPL", bars);
+
+    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+
+    const loadingCallback = vi.fn();
+    eventBus.on("chart:loading", loadingCallback);
+
+    // Fetch bars for the series
+    adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
+
+    // Should emit loading: true at start and loading: false at end
+    expect(loadingCallback).toHaveBeenCalledTimes(2);
+    expect(loadingCallback.mock.calls[0][0].loading).toBe(true);
+    expect(loadingCallback.mock.calls[1][0].loading).toBe(false);
+  });
+});
