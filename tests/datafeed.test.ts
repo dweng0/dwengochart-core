@@ -498,3 +498,55 @@ describe("Scenario: Adapter emits chart:loading during data fetch", () => {
     expect(loadingCallback.mock.calls[1][0].loading).toBe(false);
   });
 });
+
+describe("Scenario: Adapter starts a real-time subscription", () => {
+  it("adapter_starts_a_realtime_subscription", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Subscribe to real-time updates
+    const guid = adapter.subscribeBars(symbolInfo, "1D", "candles");
+
+    expect(guid).toBeDefined();
+    expect(guid.length).toBeGreaterThan(0);
+
+    // Emit a realtime bar from the datafeed
+    const realtimeBar: Bar = {
+      time: 5000,
+      open: 110,
+      high: 115,
+      low: 105,
+      close: 112,
+    };
+    datafeed.emitRealtimeBar(realtimeBar);
+
+    // The adapter should have received the bar and emitted series:data
+    expect(seriesDataCallback).toHaveBeenCalledTimes(1);
+    expect(seriesDataCallback.mock.calls[0][0].id).toBe("candles");
+    expect(seriesDataCallback.mock.calls[0][0].bars[0].time).toBe(5000);
+
+    // Verify bar was added to the store
+    expect(barStore.getBarCount()).toBe(1);
+  });
+});
