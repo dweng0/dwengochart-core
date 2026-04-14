@@ -158,15 +158,15 @@ Checked 153 scenario(s) across 7 test file(s).
 
 - [x] Adapter calls onReady and emits datafeed:ready
 - [x] Adapter resolves a symbol and updates state
-- [ ] UNCOVERED: Adapter handles symbol resolution failure
-- [ ] UNCOVERED: Adapter fetches historical bars and populates series
+- [x] Adapter handles symbol resolution failure
+- [x] Adapter fetches historical bars and populates series
 - [ ] UNCOVERED: Adapter emits chart:loading during data fetch
-- [ ] UNCOVERED: Adapter starts a real-time subscription
-- [ ] UNCOVERED: Adapter cleans up subscriptions on symbol change
+- [x] Adapter starts a real-time subscription
+- [x] Adapter cleans up subscriptions on symbol change
 - [ ] UNCOVERED: Adapter fetches earlier history on backward pagination
 - [ ] UNCOVERED: Adapter discards stale getBars responses
 - [ ] UNCOVERED: Adapter handles concurrent getBars requests
-- [ ] UNCOVERED: Adapter teardown cleans up all resources
+- [x] Adapter teardown cleans up all resources
 - [ ] UNCOVERED: Adapter normalizes synchronous datafeed callbacks to async
 
 ## Feature: Supported Resolutions
@@ -202,16 +202,11 @@ Checked 153 scenario(s) across 7 test file(s).
 - [x] Format respects timezone
 
 ---
-**143/153 scenarios covered.**
+**148/153 scenarios covered.**
 
-10 scenario(s) need tests:
-- Adapter handles symbol resolution failure
-- Adapter fetches historical bars and populates series
+5 scenario(s) need tests:
 - Adapter emits chart:loading during data fetch
-- Adapter starts a real-time subscription
-- Adapter cleans up subscriptions on symbol change
 - Adapter fetches earlier history on backward pagination
 - Adapter discards stale getBars responses
 - Adapter handles concurrent getBars requests
-- Adapter teardown cleans up all resources
 - Adapter normalizes synchronous datafeed callbacks to async
