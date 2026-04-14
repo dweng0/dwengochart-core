@@ -388,3 +388,26 @@ describe("Scenario: Adapter calls onReady and emits datafeed:ready", () => {
     expect(Array.isArray(config.supported_resolutions)).toBe(true);
   });
 });
+
+describe("Scenario: Adapter handles symbol resolution failure", () => {
+  it("adapter_handles_symbol_resolution_failure", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const adapter = new DatafeedAdapter(datafeed, { eventBus });
+
+    const symbolErrorCallback = vi.fn();
+    const chartErrorCallback = vi.fn();
+    eventBus.on("symbol:error", symbolErrorCallback);
+    eventBus.on("chart:error", chartErrorCallback);
+
+    // Try to resolve an unknown symbol
+    adapter.resolveSymbol("INVALID");
+
+    expect(symbolErrorCallback).toHaveBeenCalledTimes(1);
+    expect(symbolErrorCallback.mock.calls[0][0].symbol).toBe("INVALID");
+    expect(symbolErrorCallback.mock.calls[0][0].reason).toContain("INVALID");
+
+    expect(chartErrorCallback).toHaveBeenCalledTimes(1);
+    expect(chartErrorCallback.mock.calls[0][0].message).toContain("INVALID");
+  });
+});
