@@ -1,5 +1,12 @@
 # Journal
 
+## 2026-04-14 16:23 — Datafeed Adapter Implementation (7 scenarios)
+
+Implemented 7 Datafeed Adapter scenarios: "Adapter calls onReady and emits datafeed:ready", "Adapter handles symbol resolution failure", "Adapter fetches historical bars and populates series", "Adapter emits chart:loading during data fetch", "Adapter starts a real-time subscription", "Adapter cleans up subscriptions on symbol change", and "Adapter teardown cleans up all resources". Built complete adapter lifecycle with onReady callback, symbol resolution, historical data fetching with loading states, real-time subscriptions via SubscriptionManager, and proper cleanup on teardown. All tests pass, build/lint/format clean. Next: remaining 4 Datafeed Adapter scenarios (error handling and edge cases).
+
+Session commits: 2026-04-14 16:33: implement 'Adapter teardown cleans up all resources' scenario,2026-04-14 16:32: implement 'Adapter cleans up subscriptions on symbol change' scenario,2026-04-14 16:31: implement 'Adapter starts a real-time subscription' scenario,2026-04-14 16:30: implement 'Adapter emits chart:loading during data fetch' scenario,2026-04-14 16:30: implement 'Adapter fetches historical bars and populates series' scenario,2026-04-14 16:29: implement 'Adapter handles symbol resolution failure' scenario,2026-04-14 16:28: implement 'Adapter calls onReady and emits datafeed:ready' scenario.
+
+
 ## 2026-04-14 08:32 — Event Bus Integration (4 scenarios)
 
 Implemented all 4 remaining Event Bus Integration scenarios: "Core-to-renderer event payloads are typed", "Renderer-to-core event payloads are typed", "Widget-to-renderer event payloads are typed", and "Internal core event payloads are typed". Added new TypeScript interfaces (CoreToRendererEvents, RendererToCoreEvents, WidgetToRendererEvents, InternalCoreEvents, SeriesOptions, Theme) to src/index.ts with properly typed event payloads. Fixed existing code to use correct event payload property names (series:data uses 'id' not 'seriesId', viewport:changed uses optional timeRange/priceRange). All 120 tests pass, build/lint/format clean. Coverage increased from 138/153 to 142/153. Remaining work: Datafeed Adapter feature (11 uncovered scenarios) — start with "Adapter calls onReady and emits datafeed:ready".
