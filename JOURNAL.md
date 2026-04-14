@@ -1,6 +1,8 @@
 # Journal
 
-## 2026-04-14 00:21 — (auto-generated)
+## 2026-04-14 08:32 — Event Bus Integration (4 scenarios)
+
+Implemented all 4 remaining Event Bus Integration scenarios: "Core-to-renderer event payloads are typed", "Renderer-to-core event payloads are typed", "Widget-to-renderer event payloads are typed", and "Internal core event payloads are typed". Added new TypeScript interfaces (CoreToRendererEvents, RendererToCoreEvents, WidgetToRendererEvents, InternalCoreEvents, SeriesOptions, Theme) to src/index.ts with properly typed event payloads. Fixed existing code to use correct event payload property names (series:data uses 'id' not 'seriesId', viewport:changed uses optional timeRange/priceRange). All 120 tests pass, build/lint/format clean. Coverage increased from 138/153 to 142/153. Remaining work: Datafeed Adapter feature (11 uncovered scenarios) — start with "Adapter calls onReady and emits datafeed:ready".
 
 Session commits: no commits made.
 

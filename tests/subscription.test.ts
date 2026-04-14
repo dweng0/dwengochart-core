@@ -62,7 +62,7 @@ describe("Scenario: Receive a real-time bar update", () => {
     // Verify series:data event was emitted
     expect(seriesDataCallback).toHaveBeenCalledTimes(1);
     expect(seriesDataCallback.mock.calls[0][0]).toEqual({
-      seriesId: "candles",
+      id: "candles",
       bars: [newBar],
     });
   });

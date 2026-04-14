@@ -539,33 +539,102 @@ export function validateSymbolInfo(
 }
 
 /**
- * Chart state events interface
+ * Series options interface
  */
-export interface ChartStateEvents {
-  "symbol:resolved": { symbol: SymbolInfo };
-  "viewport:changed": {
-    range?: { from: number; to: number };
-    timeRange?: [number, number];
-    priceRange?: [number, number];
-    priceScale?: "linear" | "logarithmic" | "percentage";
-    basePrice?: number;
-  };
-  "state:reset": undefined;
-  "series:data": { seriesId: string; bars: Bar[] };
-  "chart:loading": { loading: boolean; region?: "left" | "center" };
-  "chart:error": { message: string } | null;
-  "series:add": { id: string; type: string; options?: Record<string, unknown> };
+export interface SeriesOptions {
+  color?: string;
+  lineWidth?: number;
+  visible?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Core-to-renderer event payloads
+ * Events emitted by the core that the renderer should listen to
+ */
+export interface CoreToRendererEvents {
+  "series:add": { id: string; type: string; options?: SeriesOptions };
   "series:remove": { id: string };
-  "series:update": { id: string; options: Record<string, unknown> };
+  "series:update": { id: string; options: Partial<SeriesOptions> };
   "series:show": { id: string };
   "series:hide": { id: string };
   "series:type": { id: string; type: string };
   "series:order": { ids: string[] };
+  "series:data": { id: string; bars: Bar[] };
+  "viewport:changed": {
+    timeRange?: [number, number];
+    priceRange?: [number, number];
+    priceScale?: string;
+    basePrice?: number;
+  };
+  "symbol:resolved": { symbol: SymbolInfo };
+  "chart:loading": { loading: boolean; region?: string };
+  "chart:error": { message: string } | null;
+}
+
+/**
+ * Renderer-to-core event payloads
+ * Events emitted by the renderer that the core should listen to
+ */
+export interface RendererToCoreEvents {
+  "interaction:crosshair": {
+    price: number;
+    time: number;
+    x: number;
+    y: number;
+  } | null;
+  "interaction:click": { price: number; time: number; x: number; y: number };
+  "interaction:pan": { deltaX: number };
+  "interaction:zoom": { delta: number; centerX: number };
+  "interaction:fit": object;
+  "renderer:ready": object;
+  "renderer:destroyed": object;
+}
+
+/**
+ * Widget-to-renderer event payloads
+ * Events emitted by the widget that the renderer should listen to
+ */
+export interface WidgetToRendererEvents {
+  "theme:changed": { theme: Theme };
+}
+
+/**
+ * Theme interface for widget theming
+ */
+export interface Theme {
+  mode: "light" | "dark";
+  colors: {
+    background: string;
+    text: string;
+    grid: string;
+    up: string;
+    down: string;
+  };
+}
+
+/**
+ * Internal core event payloads
+ * Events used internally within the core
+ */
+export interface InternalCoreEvents {
+  "bars:historical": { symbol: string; bars: Bar[]; resolution: string };
+  "bars:realtime": { symbol: string; bar: Bar; resolution: string };
+  "state:reset": object;
+  "subscription:created": { guid: string; symbol: string; resolution: string };
+  "subscription:removed": { guid: string };
+  "datafeed:ready": { configuration: DatafeedConfiguration };
+  "symbol:error": { symbol: string; reason: string };
+}
+
+/**
+ * Chart state events interface (backward compatible - combines core events)
+ */
+export interface ChartStateEvents
+  extends CoreToRendererEvents, InternalCoreEvents {
   "interaction:pan": { deltaX: number };
   "interaction:zoom": { delta: number; centerX: number };
   "interaction:fit": undefined;
-  "subscription:created": { guid: string; symbol: string; resolution: string };
-  "subscription:removed": { guid: string };
 }
 
 /**
@@ -946,7 +1015,7 @@ export class ChartState {
     barStore.addBars(bars);
 
     if (this.eventBus) {
-      this.eventBus.emit("series:data", { seriesId: id, bars });
+      this.eventBus.emit("series:data", { id, bars });
     }
   }
 
@@ -965,7 +1034,7 @@ export class ChartState {
     // Emit all bars in the store
     const allBars = barStore.getBars(0, Number.MAX_SAFE_INTEGER);
     if (this.eventBus) {
-      this.eventBus.emit("series:data", { seriesId: id, bars: allBars });
+      this.eventBus.emit("series:data", { id, bars: allBars });
     }
   }
 
@@ -1019,7 +1088,7 @@ export class ChartState {
     }
 
     if (this.eventBus) {
-      this.eventBus.emit("state:reset");
+      this.eventBus.emit("state:reset", {});
     }
   }
 
@@ -1129,7 +1198,9 @@ export class ChartState {
 
     if (this.eventBus) {
       this.eventBus.emit("viewport:changed", {
-        range: this.viewportRange,
+        timeRange: this.viewportRange
+          ? [this.viewportRange.from, this.viewportRange.to]
+          : undefined,
       });
     }
   }
@@ -1758,7 +1829,7 @@ export class SubscriptionManager {
     // Find series mapped to this subscription and emit event
     for (const [seriesId, guid] of this.seriesToSubscription.entries()) {
       if (guid === subscriptionGuid) {
-        this.eventBus.emit("series:data", { seriesId, bars: [bar] });
+        this.eventBus.emit("series:data", { id: seriesId, bars: [bar] });
       }
     }
   }

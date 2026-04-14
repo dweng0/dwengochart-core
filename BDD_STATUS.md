@@ -144,10 +144,10 @@ Checked 153 scenario(s) across 7 test file(s).
 
 ## Feature: Event Bus Integration
 
-- [ ] UNCOVERED: Core-to-renderer event payloads are typed
-- [ ] UNCOVERED: Renderer-to-core event payloads are typed
-- [ ] UNCOVERED: Widget-to-renderer event payloads are typed
-- [ ] UNCOVERED: Internal core event payloads are typed
+- [x] Core-to-renderer event payloads are typed
+- [x] Renderer-to-core event payloads are typed
+- [x] Widget-to-renderer event payloads are typed
+- [x] Internal core event payloads are typed
 - [x] Multiple listeners receive the same event
 - [x] Unsubscribed listener does not receive events
 - [x] Event bus is injectable
@@ -202,13 +202,9 @@ Checked 153 scenario(s) across 7 test file(s).
 - [x] Format respects timezone
 
 ---
-**138/153 scenarios covered.**
+**142/153 scenarios covered.**
 
-15 scenario(s) need tests:
-- Core-to-renderer event payloads are typed
-- Renderer-to-core event payloads are typed
-- Widget-to-renderer event payloads are typed
-- Internal core event payloads are typed
+11 scenario(s) need tests:
 - Adapter calls onReady and emits datafeed:ready
 - Adapter handles symbol resolution failure
 - Adapter fetches historical bars and populates series

@@ -11,8 +11,8 @@ interface ChartEvents {
     priceScale?: "linear" | "logarithmic" | "percentage";
     basePrice?: number;
   };
-  "state:reset": undefined;
-  "series:data": { seriesId: string; bars: any[] };
+  "state:reset": object;
+  "series:data": { id: string; bars: any[] };
   "chart:loading": { loading: boolean; region?: "left" | "center" };
   "chart:error": { message: string } | null;
   "series:add": { id: string; type: string; options?: Record<string, unknown> };
@@ -553,7 +553,7 @@ describe("Scenario: Emit series:data when bars are loaded for a series", () => {
     // Verify the event was emitted with the bars
     expect(dataCallback).toHaveBeenCalledTimes(1);
     expect(dataCallback.mock.calls[0][0]).toEqual({
-      seriesId: "candles",
+      id: "candles",
       bars: bars,
     });
   });
@@ -579,7 +579,7 @@ describe("Scenario: Each series has its own bar store", () => {
 
     // Verify only one event was emitted (for "candles")
     expect(dataCallback).toHaveBeenCalledTimes(1);
-    expect(dataCallback.mock.calls[0][0].seriesId).toBe("candles");
+    expect(dataCallback.mock.calls[0][0].id).toBe("candles");
 
     // Verify "ma20" bar store is empty
     const ma20Store = chartState.getSeriesBarStore("ma20");
@@ -619,7 +619,7 @@ describe("Scenario: Emit series:data when a real-time bar updates a series", () 
 
     // Verify the event was emitted with all bars (including the new one)
     expect(dataCallback).toHaveBeenCalledTimes(1);
-    expect(dataCallback.mock.calls[0][0].seriesId).toBe("candles");
+    expect(dataCallback.mock.calls[0][0].id).toBe("candles");
     expect(dataCallback.mock.calls[0][0].bars).toHaveLength(3);
     expect(dataCallback.mock.calls[0][0].bars[2]).toEqual(realtimeBar);
   });
