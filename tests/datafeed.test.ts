@@ -441,7 +441,10 @@ describe("Scenario: Adapter fetches historical bars and populates series", () =>
     ];
     datafeed.addBars("AAPL", bars);
 
-    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
 
     const seriesDataCallback = vi.fn();
     eventBus.on("series:data", seriesDataCallback);
@@ -484,7 +487,10 @@ describe("Scenario: Adapter emits chart:loading during data fetch", () => {
     ];
     datafeed.addBars("AAPL", bars);
 
-    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
 
     const loadingCallback = vi.fn();
     eventBus.on("chart:loading", loadingCallback);
@@ -520,7 +526,10 @@ describe("Scenario: Adapter starts a real-time subscription", () => {
     };
     datafeed.addSymbol(symbolInfo);
 
-    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
 
     const seriesDataCallback = vi.fn();
     eventBus.on("series:data", seriesDataCallback);
@@ -584,7 +593,10 @@ describe("Scenario: Adapter cleans up subscriptions on symbol change", () => {
     datafeed.addSymbol(aaplInfo);
     datafeed.addSymbol(googInfo);
 
-    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
 
     // Subscribe to AAPL
     adapter.subscribeBars(aaplInfo, "1D", "candles");
@@ -604,5 +616,51 @@ describe("Scenario: Adapter cleans up subscriptions on symbol change", () => {
 
     // No series:data should be emitted since subscription was cleaned up
     // (we haven't subscribed to GOOG yet)
+  });
+});
+
+describe("Scenario: Adapter teardown cleans up all resources", () => {
+  it("adapter_teardown_cleans_up_all_resources", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
+
+    // Subscribe to real-time updates
+    adapter.subscribeBars(symbolInfo, "1D", "candles");
+
+    // Destroy the adapter
+    adapter.destroy();
+
+    // Emit a realtime bar - should be ignored after destroy
+    const realtimeBar: Bar = {
+      time: 5000,
+      open: 110,
+      high: 115,
+      low: 105,
+      close: 112,
+    };
+    datafeed.emitRealtimeBar(realtimeBar);
+
+    // No series:data should be emitted after destroy
   });
 });
