@@ -1878,7 +1878,7 @@ export class DatafeedAdapter {
 
   /**
    * Resolve a symbol via the datafeed.
-   * On success, emits symbol:resolved and updates current symbol.
+   * On success, emits symbol:resolved and cleans up old subscriptions.
    * On failure, emits symbol:error and chart:error.
    */
   resolveSymbol(symbolName: string): void {
@@ -1888,6 +1888,8 @@ export class DatafeedAdapter {
       symbolName,
       (symbolInfo) => {
         if (this.destroyed) return;
+        // Clean up old subscriptions before resolving new symbol
+        this.cleanupOnSymbolChange();
         this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
       },
       (reason) => {

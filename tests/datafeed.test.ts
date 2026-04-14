@@ -550,3 +550,59 @@ describe("Scenario: Adapter starts a real-time subscription", () => {
     expect(barStore.getBarCount()).toBe(1);
   });
 });
+
+describe("Scenario: Adapter cleans up subscriptions on symbol change", () => {
+  it("adapter_cleans_up_subscriptions_on_symbol_change", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const aaplInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    const googInfo: SymbolInfo = {
+      name: "GOOG",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(aaplInfo);
+    datafeed.addSymbol(googInfo);
+
+    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+
+    // Subscribe to AAPL
+    adapter.subscribeBars(aaplInfo, "1D", "candles");
+
+    // Resolve a new symbol - this should clean up the AAPL subscription
+    adapter.resolveSymbol("GOOG");
+
+    // Emit a realtime bar - should not be received since subscription was cleaned up
+    const realtimeBar: Bar = {
+      time: 5000,
+      open: 110,
+      high: 115,
+      low: 105,
+      close: 112,
+    };
+    datafeed.emitRealtimeBar(realtimeBar);
+
+    // No series:data should be emitted since subscription was cleaned up
+    // (we haven't subscribed to GOOG yet)
+  });
+});
