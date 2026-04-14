@@ -1,9 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
+import { EventBus } from "@yatamazuki/typed-eventbus";
 import {
   SimpleDatafeed,
   SymbolInfo,
   Bar,
   DatafeedConfiguration,
+  DatafeedAdapter,
+  ChartStateEvents,
 } from "../src/index";
 
 describe("Scenario: Datafeed onReady returns configuration", () => {
@@ -365,5 +368,23 @@ describe("Scenario: Datafeed getBars includes firstDataRequest flag", () => {
     datafeed.getBars(symbolInfo, "1D", 1000, 3000, onHistory, onError, true);
 
     expect(onHistory).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Scenario: Adapter calls onReady and emits datafeed:ready", () => {
+  it("adapter_calls_onready_and_emits_datafeed_ready", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+
+    const datafeedReadyCallback = vi.fn();
+    eventBus.on("datafeed:ready", datafeedReadyCallback);
+
+    const adapter = new DatafeedAdapter(datafeed, { eventBus });
+
+    // The adapter should have called onReady on initialization and emitted the event
+    expect(datafeedReadyCallback).toHaveBeenCalledTimes(1);
+    const config = datafeedReadyCallback.mock.calls[0][0].configuration;
+    expect(config.supported_resolutions).toBeDefined();
+    expect(Array.isArray(config.supported_resolutions)).toBe(true);
   });
 });

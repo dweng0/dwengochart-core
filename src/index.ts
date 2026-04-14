@@ -1844,6 +1844,188 @@ export class SubscriptionManager {
 }
 
 /**
+ * Options for DatafeedAdapter
+ */
+export interface DatafeedAdapterOptions {
+  eventBus: EventBus<ChartStateEvents>;
+  seriesBarStores?: Map<string, BarSeriesStore>;
+}
+
+/**
+ * DatafeedAdapter bridges a user-provided IBasicDataFeed to the core state.
+ * It calls datafeed methods and emits events to update the bar store and chart state.
+ */
+export class DatafeedAdapter {
+  private datafeed: IDatafeed;
+  private eventBus: EventBus<ChartStateEvents>;
+  private seriesBarStores: Map<string, BarSeriesStore>;
+  private pendingRequests: Map<string, boolean> = new Map();
+  private activeSubscriptions: Map<string, string> = new Map(); // seriesId -> listenerId
+  private destroyed = false;
+
+  constructor(datafeed: IDatafeed, options: DatafeedAdapterOptions) {
+    this.datafeed = datafeed;
+    this.eventBus = options.eventBus;
+    this.seriesBarStores = options.seriesBarStores ?? new Map();
+
+    // Call onReady on initialization and emit datafeed:ready
+    this.datafeed.onReady((config) => {
+      if (!this.destroyed) {
+        this.eventBus.emit("datafeed:ready", { configuration: config });
+      }
+    });
+  }
+
+  /**
+   * Resolve a symbol via the datafeed.
+   * On success, emits symbol:resolved and updates current symbol.
+   * On failure, emits symbol:error and chart:error.
+   */
+  resolveSymbol(symbolName: string): void {
+    if (this.destroyed) return;
+
+    this.datafeed.resolveSymbol(
+      symbolName,
+      (symbolInfo) => {
+        if (this.destroyed) return;
+        this.eventBus.emit("symbol:resolved", { symbol: symbolInfo });
+      },
+      (reason) => {
+        if (this.destroyed) return;
+        this.eventBus.emit("symbol:error", { symbol: symbolName, reason });
+        this.eventBus.emit("chart:error", { message: reason });
+      },
+    );
+  }
+
+  /**
+   * Fetch historical bars for a symbol and resolution.
+   * Emits chart:loading during fetch and series:data on success.
+   */
+  fetchBars(
+    symbolInfo: SymbolInfo,
+    resolution: string,
+    from: number,
+    to: number,
+    seriesId: string,
+    firstDataRequest?: boolean,
+  ): void {
+    if (this.destroyed) return;
+
+    const requestId = `${symbolInfo.name}-${resolution}-${from}-${to}`;
+    this.pendingRequests.set(requestId, true);
+
+    // Emit loading start
+    this.eventBus.emit("chart:loading", { loading: true });
+
+    this.datafeed.getBars(
+      symbolInfo,
+      resolution,
+      from,
+      to,
+      (bars, noData, _nextTime) => {
+        if (this.destroyed) return;
+
+        // Check if this request is still relevant
+        if (!this.pendingRequests.get(requestId)) {
+          // Stale response, discard
+          return;
+        }
+        this.pendingRequests.delete(requestId);
+
+        // Emit loading end
+        this.eventBus.emit("chart:loading", { loading: false });
+
+        if (!noData && bars.length > 0) {
+          const barStore = this.seriesBarStores.get(seriesId);
+          if (barStore) {
+            barStore.addBars(bars);
+            this.eventBus.emit("series:data", { id: seriesId, bars });
+          }
+        }
+      },
+      (reason) => {
+        if (this.destroyed) return;
+        this.pendingRequests.delete(requestId);
+        this.eventBus.emit("chart:loading", { loading: false });
+        this.eventBus.emit("chart:error", { message: reason });
+      },
+      firstDataRequest,
+    );
+  }
+
+  /**
+   * Subscribe to real-time updates for a symbol at a resolution.
+   * Returns a subscription guid.
+   */
+  subscribeBars(
+    symbolInfo: SymbolInfo,
+    resolution: string,
+    seriesId: string,
+  ): string {
+    if (this.destroyed) return "";
+
+    const guid = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const onRealtime = (bar: Bar) => {
+      if (this.destroyed) return;
+      const barStore = this.seriesBarStores.get(seriesId);
+      if (barStore) {
+        barStore.addBars([bar]);
+        this.eventBus.emit("series:data", { id: seriesId, bars: [bar] });
+      }
+    };
+
+    const onReset = () => {
+      if (this.destroyed) return;
+      // Handle reset if needed
+    };
+
+    this.datafeed.subscribeBars(symbolInfo, resolution, onRealtime, onReset);
+    this.activeSubscriptions.set(seriesId, guid);
+
+    return guid;
+  }
+
+  /**
+   * Unsubscribe from real-time updates.
+   */
+  unsubscribeBars(seriesId: string): void {
+    const listenerId = this.activeSubscriptions.get(seriesId);
+    if (listenerId) {
+      this.datafeed.unsubscribeBars(listenerId);
+      this.activeSubscriptions.delete(seriesId);
+    }
+  }
+
+  /**
+   * Clean up subscriptions when symbol changes.
+   */
+  cleanupOnSymbolChange(): void {
+    // Unsubscribe from all active subscriptions
+    for (const seriesId of this.activeSubscriptions.keys()) {
+      this.unsubscribeBars(seriesId);
+    }
+  }
+
+  /**
+   * Mark a request as stale (for handling concurrent requests).
+   */
+  markRequestStale(requestId: string): void {
+    this.pendingRequests.delete(requestId);
+  }
+
+  /**
+   * Destroy the adapter and clean up all resources.
+   */
+  destroy(): void {
+    this.destroyed = true;
+    this.cleanupOnSymbolChange();
+    this.pendingRequests.clear();
+  }
+}
+
+/**
  * Format a timestamp into a display string based on resolution and timezone.
  *
  * @param timestamp - Unix timestamp in milliseconds

@@ -156,7 +156,7 @@ Checked 153 scenario(s) across 7 test file(s).
 
 ## Feature: Datafeed Adapter
 
-- [ ] UNCOVERED: Adapter calls onReady and emits datafeed:ready
+- [x] Adapter calls onReady and emits datafeed:ready
 - [x] Adapter resolves a symbol and updates state
 - [ ] UNCOVERED: Adapter handles symbol resolution failure
 - [ ] UNCOVERED: Adapter fetches historical bars and populates series
@@ -202,10 +202,9 @@ Checked 153 scenario(s) across 7 test file(s).
 - [x] Format respects timezone
 
 ---
-**142/153 scenarios covered.**
+**143/153 scenarios covered.**
 
-11 scenario(s) need tests:
-- Adapter calls onReady and emits datafeed:ready
+10 scenario(s) need tests:
 - Adapter handles symbol resolution failure
 - Adapter fetches historical bars and populates series
 - Adapter emits chart:loading during data fetch
