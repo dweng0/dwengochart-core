@@ -7,6 +7,7 @@ import {
   DatafeedConfiguration,
   DatafeedAdapter,
   ChartStateEvents,
+  SimpleBarStore,
 } from "../src/index";
 
 describe("Scenario: Datafeed onReady returns configuration", () => {
@@ -409,5 +410,50 @@ describe("Scenario: Adapter handles symbol resolution failure", () => {
 
     expect(chartErrorCallback).toHaveBeenCalledTimes(1);
     expect(chartErrorCallback.mock.calls[0][0].message).toContain("INVALID");
+  });
+});
+
+describe("Scenario: Adapter fetches historical bars and populates series", () => {
+  it("adapter_fetches_historical_bars_and_populates_series", () => {
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 102, high: 107, low: 97, close: 105 },
+      { time: 3000, open: 105, high: 110, low: 100, close: 108 },
+    ];
+    datafeed.addBars("AAPL", bars);
+
+    const adapter = new DatafeedAdapter(datafeed, { eventBus, seriesBarStores });
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Fetch bars for the series
+    adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
+
+    expect(seriesDataCallback).toHaveBeenCalledTimes(1);
+    expect(seriesDataCallback.mock.calls[0][0].id).toBe("candles");
+    expect(seriesDataCallback.mock.calls[0][0].bars.length).toBe(3);
+
+    // Verify bars were added to the store
+    expect(barStore.getBarCount()).toBe(3);
   });
 });
