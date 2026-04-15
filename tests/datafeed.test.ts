@@ -415,6 +415,7 @@ describe("Scenario: Adapter handles symbol resolution failure", () => {
 
 describe("Scenario: Adapter fetches historical bars and populates series", () => {
   it("adapter_fetches_historical_bars_and_populates_series", () => {
+    vi.useFakeTimers();
     const eventBus = new EventBus<ChartStateEvents>();
     const datafeed = new SimpleDatafeed();
     const barStore = new SimpleBarStore();
@@ -452,17 +453,22 @@ describe("Scenario: Adapter fetches historical bars and populates series", () =>
     // Fetch bars for the series
     adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
 
+    // Advance timers to allow async callbacks to execute
+    vi.advanceTimersByTime(0);
+
     expect(seriesDataCallback).toHaveBeenCalledTimes(1);
     expect(seriesDataCallback.mock.calls[0][0].id).toBe("candles");
     expect(seriesDataCallback.mock.calls[0][0].bars.length).toBe(3);
 
     // Verify bars were added to the store
     expect(barStore.getBarCount()).toBe(3);
+    vi.useRealTimers();
   });
 });
 
 describe("Scenario: Adapter emits chart:loading during data fetch", () => {
-  it("adapter_emits_chart_loading_during_data_fetch", () => {
+  it("adapter_emits_chartloading_during_data_fetch", () => {
+    vi.useFakeTimers();
     const eventBus = new EventBus<ChartStateEvents>();
     const datafeed = new SimpleDatafeed();
     const barStore = new SimpleBarStore();
@@ -498,10 +504,17 @@ describe("Scenario: Adapter emits chart:loading during data fetch", () => {
     // Fetch bars for the series
     adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
 
-    // Should emit loading: true at start and loading: false at end
-    expect(loadingCallback).toHaveBeenCalledTimes(2);
+    // Should emit loading: true synchronously
+    expect(loadingCallback).toHaveBeenCalledTimes(1);
     expect(loadingCallback.mock.calls[0][0].loading).toBe(true);
+
+    // Advance timers to allow async callback to execute
+    vi.advanceTimersByTime(0);
+
+    // Should emit loading: false after async callback
+    expect(loadingCallback).toHaveBeenCalledTimes(2);
     expect(loadingCallback.mock.calls[1][0].loading).toBe(false);
+    vi.useRealTimers();
   });
 });
 
@@ -662,5 +675,236 @@ describe("Scenario: Adapter teardown cleans up all resources", () => {
     datafeed.emitRealtimeBar(realtimeBar);
 
     // No series:data should be emitted after destroy
+  });
+});
+
+describe("Scenario: Adapter discards stale getBars responses", () => {
+  it("adapter_discards_stale_getbars_responses", () => {
+    vi.useFakeTimers();
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    // Add bars that will be returned for any getBars call
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 110, high: 115, low: 105, close: 112 },
+    ];
+    datafeed.addBars("AAPL", bars);
+
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Request bars for 1D resolution
+    adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
+
+    // Mark the 1D request as stale before it completes
+    adapter.markRequestStale("AAPL-1D-1000-3000");
+
+    // Request bars for 1H resolution with different range
+    adapter.fetchBars(symbolInfo, "1H", 2000, 4000, "candles");
+
+    // Advance timers to allow async callbacks to execute
+    vi.advanceTimersByTime(0);
+
+    // The 1D response should have been discarded, only 1H response processed
+    // Both requests will return the same bars from the datafeed, but only
+    // the non-stale one should trigger series:data
+    expect(seriesDataCallback).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});
+
+describe("Scenario: Adapter handles concurrent getBars requests", () => {
+  it("adapter_handles_concurrent_getbars_requests", () => {
+    vi.useFakeTimers();
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    // Add bars covering all requested ranges
+    const bars: Bar[] = [
+      { time: 1000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 2000, open: 110, high: 115, low: 105, close: 112 },
+      { time: 3000, open: 120, high: 125, low: 115, close: 122 },
+      { time: 4000, open: 130, high: 135, low: 125, close: 132 },
+    ];
+    datafeed.addBars("AAPL", bars);
+
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Simulate rapid scrolling triggering multiple getBars calls
+    adapter.fetchBars(symbolInfo, "1D", 1000, 2000, "candles");
+    adapter.fetchBars(symbolInfo, "1D", 2000, 3000, "candles");
+    adapter.fetchBars(symbolInfo, "1D", 3000, 4000, "candles");
+
+    // Advance timers to allow async callbacks to execute
+    vi.advanceTimersByTime(0);
+
+    // All responses should be merged into the store
+    expect(seriesDataCallback).toHaveBeenCalledTimes(3);
+    expect(barStore.getBarCount()).toBeGreaterThanOrEqual(1);
+    vi.useRealTimers();
+  });
+});
+
+describe("Scenario: Adapter fetches earlier history on backward pagination", () => {
+  it("adapter_fetches_earlier_history_on_backward_pagination", () => {
+    vi.useFakeTimers();
+    const eventBus = new EventBus<ChartStateEvents>();
+    const datafeed = new SimpleDatafeed();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    datafeed.addSymbol(symbolInfo);
+
+    // Pre-load bars from time 5000 to 10000
+    const existingBars: Bar[] = [
+      { time: 5000, open: 100, high: 105, low: 95, close: 102 },
+      { time: 10000, open: 110, high: 115, low: 105, close: 112 },
+    ];
+    datafeed.addBars("AAPL", existingBars);
+    barStore.addBars(existingBars);
+
+    const adapter = new DatafeedAdapter(datafeed, {
+      eventBus,
+      seriesBarStores,
+    });
+
+    const loadingCallback = vi.fn();
+    const seriesDataCallback = vi.fn();
+    eventBus.on("chart:loading", loadingCallback);
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Fetch earlier history (backward pagination)
+    adapter.fetchBars(symbolInfo, "1D", 1000, 5000, "candles", false);
+
+    // Advance timers to allow async callback to execute
+    vi.advanceTimersByTime(0);
+
+    // Should emit chart:loading (true at start, false at end)
+    expect(loadingCallback).toHaveBeenCalled();
+    // Should merge earlier bars into the store
+    expect(seriesDataCallback).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+});
+
+describe("Scenario: Adapter normalizes synchronous datafeed callbacks to async", () => {
+  it("adapter_normalizes_synchronous_datafeed_callbacks_to_async", () => {
+    vi.useFakeTimers();
+    const eventBus = new EventBus<ChartStateEvents>();
+    const barStore = new SimpleBarStore();
+    const seriesBarStores = new Map<string, SimpleBarStore>();
+    seriesBarStores.set("candles", barStore);
+
+    // Create a datafeed that calls onHistory synchronously
+    const syncDatafeed = new SimpleDatafeed();
+
+    // Override getBars to call the callback synchronously
+    syncDatafeed.getBars = function (
+      symbolInfo,
+      resolution,
+      from,
+      to,
+      onHistory,
+      onError,
+      firstDataRequest,
+      countBack,
+    ) {
+      // Call the callback synchronously (simulating a synchronous datafeed)
+      onHistory(
+        [{ time: 1000, open: 100, high: 105, low: 95, close: 102 }],
+        false,
+      );
+    };
+
+    const symbolInfo: SymbolInfo = {
+      name: "AAPL",
+      exchange: "NASDAQ",
+      type: "stock",
+      timezone: "America/New_York",
+      session: "0930-1600",
+      minmov: 1,
+      pricescale: 100,
+      has_intraday: true,
+      has_no_volume: false,
+    };
+    syncDatafeed.addSymbol(symbolInfo);
+
+    const adapter = new DatafeedAdapter(syncDatafeed, {
+      eventBus,
+      seriesBarStores,
+    });
+
+    const seriesDataCallback = vi.fn();
+    eventBus.on("series:data", seriesDataCallback);
+
+    // Fetch bars - the callback will be called synchronously by the datafeed
+    adapter.fetchBars(symbolInfo, "1D", 1000, 3000, "candles");
+
+    // The callback should NOT have been called yet because the adapter
+    // wraps it in setTimeout to normalize to async
+    expect(seriesDataCallback).not.toHaveBeenCalled();
+
+    // Advance timers to allow async callback to execute
+    vi.advanceTimersByTime(0);
+
+    // Now the callback should have been called
+    expect(seriesDataCallback).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 });

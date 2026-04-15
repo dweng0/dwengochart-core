@@ -1926,31 +1926,37 @@ export class DatafeedAdapter {
       from,
       to,
       (bars, noData, _nextTime) => {
-        if (this.destroyed) return;
+        // Normalize synchronous callback to async
+        setTimeout(() => {
+          if (this.destroyed) return;
 
-        // Check if this request is still relevant
-        if (!this.pendingRequests.get(requestId)) {
-          // Stale response, discard
-          return;
-        }
-        this.pendingRequests.delete(requestId);
-
-        // Emit loading end
-        this.eventBus.emit("chart:loading", { loading: false });
-
-        if (!noData && bars.length > 0) {
-          const barStore = this.seriesBarStores.get(seriesId);
-          if (barStore) {
-            barStore.addBars(bars);
-            this.eventBus.emit("series:data", { id: seriesId, bars });
+          // Check if this request is still relevant
+          if (!this.pendingRequests.get(requestId)) {
+            // Stale response, discard
+            return;
           }
-        }
+          this.pendingRequests.delete(requestId);
+
+          // Emit loading end
+          this.eventBus.emit("chart:loading", { loading: false });
+
+          if (!noData && bars.length > 0) {
+            const barStore = this.seriesBarStores.get(seriesId);
+            if (barStore) {
+              barStore.addBars(bars);
+              this.eventBus.emit("series:data", { id: seriesId, bars });
+            }
+          }
+        }, 0);
       },
       (reason) => {
-        if (this.destroyed) return;
-        this.pendingRequests.delete(requestId);
-        this.eventBus.emit("chart:loading", { loading: false });
-        this.eventBus.emit("chart:error", { message: reason });
+        // Normalize synchronous callback to async
+        setTimeout(() => {
+          if (this.destroyed) return;
+          this.pendingRequests.delete(requestId);
+          this.eventBus.emit("chart:loading", { loading: false });
+          this.eventBus.emit("chart:error", { message: reason });
+        }, 0);
       },
       firstDataRequest,
     );
