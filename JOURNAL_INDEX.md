@@ -28,3 +28,4 @@
 | 2026-04-14 | 08:32 | 142/153 | implement 4 Event Bus Integration typed payload scenarios |
 | 2026-04-14 | 16:23 | 148/153 | 2026-04-14 16:33: implement 'Adapter teardown cleans up all resources' scenario;2026-04-14 16:32: implement 'Adapter cleans up subscriptions on symbol change' scenario 2026-04-14 16:31: implement 'Adapter starts a real-time subscription' scenario;2026-04-14 16:30: implement 'Adapter emits chart:loading during data fetch' scenario 2026-04-14 16:30: implement 'Adapter fetches historical bars and populates series' scenario;2026-04-14 16:29: implement 'Adapter handles symbol resolution failure' scenario 2026-04-14 16:28: implement 'Adapter calls onReady and emits datafeed:ready' scenario |
 | 2026-04-15 | 00:22 | 153/153 | update journal index;implement 5 uncovered Datafeed Adapter scenarios |
+| 2026-04-15 | 08:32 | 153/153 | project checked — all scenarios complete, no open issues |
