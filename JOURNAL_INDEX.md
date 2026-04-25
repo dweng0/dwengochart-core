@@ -1,6 +1,7 @@
 # Journal Index
 
 <!-- One line per session. Newest at the top. -->
+| 2026-04-25 | 08:18 | 153/153 | 2026-04-25 08:18: project checked — all scenarios complete, no open issues |
 | 2026-04-25 | 00:20 | 153/153 | 2026-04-25 00:20: project checked — all scenarios complete, no open issues |
 | 2026-04-15 | 00:22 | 153/153 | 2026-04-15 00:22: implement 5 uncovered Datafeed Adapter scenarios — project now 100% BDD coverage |
 | 2026-04-14 | 16:23 | 148/153 | 2026-04-14 16:33: implement 'Adapter teardown cleans up all resources' scenario;2026-04-14 16:32: implement 'Adapter cleans up subscriptions on symbol change' scenario 2026-04-14 16:31: implement 'Adapter starts a real-time subscription' scenario;2026-04-14 16:30: implement 'Adapter emits chart:loading during data fetch' scenario 2026-04-14 16:30: implement 'Adapter fetches historical bars and populates series' scenario;2026-04-14 16:29: implement 'Adapter handles symbol resolution failure' scenario 2026-04-14 16:28: implement 'Adapter calls onReady and emits datafeed:ready' scenario |
